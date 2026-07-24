@@ -1,54 +1,34 @@
 
 import { addNewPage } from "./services/storage.js";
 import { getMonitoredPageList } from "./ui/renderMonitorList.js";
+import { createAlert } from "./ui/alerts.js";
 import { validateUrl } from "./utils/urlValidator.js";
 
 const titleElement = document.getElementById("page-title");
 const urlElement = document.getElementById("page-url");
-const statusElement = document.getElementById("status");
 const watchButton = document.getElementById("watch-button");
+const statusElement = document.getElementById("status");
 
-//Alert generation
-export function createAlert(message){
-    statusElement.innerHTML = "<h2>" + message + "</h2>";
+const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+if (!tab || !tab.url) {
+    throw new Error("Could not read the current page.");
 }
 
-//Set initial popup data
-document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+const result = validateUrl(tab.url);
 
-        if (!tab || !tab.url) {
-            throw new Error("Could not read the current page.");
-        }
+if (!result.valid) {
+    titleElement.textContent = tab.title;
+    statusElement.textContent = result.reason;
+    watchButton.disabled = true;
+} else {
+    titleElement.textContent = tab.title || "Current page";
+    urlElement.textContent = tab.url;
+    await getMonitoredPageList()
+}
 
-        const result = validateUrl(tab.url);
-
-        if (!result.valid) {
-            statusElement.textContent = result.reason;
-            titleElement.textContent = tab.title;
-            watchButton.disabled = true;
-            return;
-        }
-
-        titleElement.textContent = tab.title || "Current page";
-        urlElement.textContent = tab.url;
-        await getMonitoredPageList()
-
-        //Add a new page to the list
-        watchButton.addEventListener("click", async () => {
-            await addNewPage({ title: tab.title || "Untitled page", url: tab.url, savedAt: new Date().toISOString() });
-            createAlert("Page saved!");       
-            await getMonitoredPageList()        
-        })
-
-    } catch (error) {
-
-        titleElement.textContent = "Unable to read this page.";
-        urlElement.textContent = "";
-        watchButton.disabled = true;
-        statusElement.textContent = error.message;
-
-    }
-});
+watchButton.addEventListener("click", async () => {
+    await addNewPage({ title: tab.title || "Untitled page", url: tab.url, savedAt: new Date().toISOString() });
+    createAlert("Page saved!");       
+    await getMonitoredPageList()        
+})

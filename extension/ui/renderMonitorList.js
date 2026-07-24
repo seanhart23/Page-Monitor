@@ -1,4 +1,4 @@
-import { createAlert } from "../popup.js";
+import { createAlert } from "./alerts.js";
 
 const trackedPageElement = document.getElementById("tracked-pages");
 const deleteButton = document.getElementsByClassName("delete-button");
@@ -17,7 +17,7 @@ export async function getMonitoredPageList() {
     ).join('');
 
     const deleteButtons = document.querySelectorAll('.delete-button');
-    
+
     deleteButtons.forEach((button, index) => {
         button.addEventListener('click', (event) => {
             const indexToRemove = Number(event.target.getAttribute('data-index'));
