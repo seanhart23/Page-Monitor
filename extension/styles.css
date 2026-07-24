@@ -1,5 +1,5 @@
 body {
-  width: 320px;
+  width: 600px;
   padding: 16px;
   font-family: Arial, sans-serif;
 }
@@ -19,6 +19,12 @@ h2 {
   color: #555;
 }
 
+.delete-button {
+    width: auto;
+    margin-bottom: 12px;
+    float: right;
+}
+
 button {
   width: 100%;
   padding: 10px;
@@ -28,4 +34,8 @@ button {
 
 #status {
   margin-bottom: 0;
+}
+
+table {
+    width: 100%;
 }
