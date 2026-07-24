@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Page Monitor",
+  "version": "1.0",
+  "description": "Monitor websites for changes",
+  "permissions": [
+    "tabs",
+    "storage",
+    "activeTab"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
