@@ -11,7 +11,7 @@ export async function renderMonitorList() {
         `<tr>
             <td>${index}</td>
             <td>${item.title}</td>
-            <td><button class="delete-button" id="${item.id}">Delete</button></td>
+            <td><button class="delete-button" id="${item._id}">Delete</button></td>
         </tr>`
     ).join('');
 

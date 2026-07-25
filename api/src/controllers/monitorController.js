@@ -1,87 +1,102 @@
-const monitors = [];
+import { Monitor } from "../models/monitor.js";
+import { normalizeUrl } from "../utils/normalizeUrl.js";
 
-export function getMonitors(request, response) {
-  response.json({
-    success: true,
-    data: monitors
-  });
-}
-
-export function createMonitor(request, response) {
-
-  console.log("POST /api/monitors");
-  console.log(request.body);
-
-  const { id, title, url, savedAt } = request.body;
-
-  if (!url) {
-    return response.status(400).json({
-      success: false,
-      message: "URL is required"
-    });
-  }
-
-  const duplicate = monitors.some(
-    monitor => normalizeUrl(monitor.url) === normalizeUrl(url)
-  );
-
-  if (duplicate) {
-    return response.status(409).json({
-      success: false,
-      message: "This page is already being monitored"
-    });
-  }
-
-  const monitor = {
-    id: crypto.randomUUID(),
-    title: title?.trim() || "Untitled page",
-    url: url.trim(),
-    enabled: true,
-    checkFrequency: "daily",
-    createdAt: new Date().toISOString(),
-    lastCheckedAt: null,
-    lastChangedAt: null
-  };
-
-  monitors.push(monitor);
-
-  return response.status(201).json({
-    success: true,
-    data: monitor
-  });
-}
-
-export function deleteMonitor(request, response) {
-  const { id } = request.params;
-  const monitorIndex = monitors.findIndex(monitor => monitor.id === id);
-
-  if (monitorIndex === -1) {
-    return response.status(404).json({
-      success: false,
-      message: "Monitor not found"
-    });
-  }
-
-  const [deletedMonitor] = monitors.splice(monitorIndex, 1);
-
-  return response.json({
-    success: true,
-    data: deletedMonitor
-  });
-}
-
-function normalizeUrl(value) {
+export async function getMonitors(request, response) {
   try {
-    const url = new URL(value);
+    const monitors = await Monitor.find().sort({
+      createdAt: -1
+    });
 
-    url.hash = "";
+    response.json({
+      success: true,
+      data: monitors
+    });
+  } catch (error) {
+    console.error("Unable to load monitors:", error);
 
-    if (url.pathname !== "/") {
-      url.pathname = url.pathname.replace(/\/+$/, "");
+    response.status(500).json({
+      success: false,
+      message: "Unable to load monitors"
+    });
+  }
+}
+
+export async function createMonitor(request, response) {
+  try {
+    const { title, url } = request.body;
+
+    if (!url) {
+      return response.status(400).json({
+        success: false,
+        message: "URL is required"
+      });
     }
 
-    return url.toString();
-  } catch {
-    return value;
+    let normalizedUrl;
+
+    try {
+      normalizedUrl = normalizeUrl(url);
+    } catch {
+      return response.status(400).json({
+        success: false,
+        message: "A valid URL is required"
+      });
+    }
+
+    const existingMonitor = await Monitor.findOne({
+      normalizedUrl
+    });
+
+    if (existingMonitor) {
+      return response.status(409).json({
+        success: false,
+        message: "This page is already being monitored"
+      });
+    }
+
+    const monitor = await Monitor.create({
+      title: title?.trim() || "Untitled page",
+      url,
+      normalizedUrl
+    });
+
+    return response.status(201).json({
+      success: true,
+      data: monitor
+    });
+  } catch (error) {
+    console.error("Unable to create monitor:", error);
+
+    return response.status(500).json({
+      success: false,
+      message: "Unable to create monitor"
+    });
+  }
+}
+
+export async function deleteMonitor(request, response) {
+  try {
+    const monitor = await Monitor.findByIdAndDelete(
+      request.params.id
+    );
+
+    if (!monitor) {
+      return response.status(404).json({
+        success: false,
+        message: "Monitor not found"
+      });
+    }
+
+    return response.json({
+      success: true,
+      data: monitor
+    });
+  } catch (error) {
+    console.error("Unable to delete monitor:", error);
+
+    return response.status(500).json({
+      success: false,
+      message: "Unable to delete monitor"
+    });
   }
 }
