@@ -1,6 +1,5 @@
-
-import { addNewPage } from "./services/storage.js";
-import { getMonitoredPageList } from "./ui/renderMonitorList.js";
+import { createMonitor } from "./services/api.js";
+import { renderMonitorList } from "./ui/renderMonitorList.js";
 import { createAlert } from "./ui/alerts.js";
 import { validateUrl } from "./utils/urlValidator.js";
 
@@ -9,26 +8,57 @@ const urlElement = document.getElementById("page-url");
 const watchButton = document.getElementById("watch-button");
 const statusElement = document.getElementById("status");
 
-const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+let tab = null;
 
-if (!tab || !tab.url) {
+await initializePopup();
+await renderMonitorList();
+
+async function initializePopup() {
+  [tab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true
+  });
+
+  if (!tab || !tab.url) {
     throw new Error("Could not read the current page.");
-}
+  }
 
-const result = validateUrl(tab.url);
+  const result = validateUrl(tab.url);
 
-if (!result.valid) {
-    titleElement.textContent = tab.title;
+  titleElement.textContent = tab.title || "Current page";
+  urlElement.textContent = tab.url;
+
+  if (!result.valid) {
     statusElement.textContent = result.reason;
     watchButton.disabled = true;
-} else {
-    titleElement.textContent = tab.title || "Current page";
-    urlElement.textContent = tab.url;
-    await getMonitoredPageList()
+  }
 }
 
 watchButton.addEventListener("click", async () => {
-    await addNewPage({ title: tab.title || "Untitled page", url: tab.url, savedAt: new Date().toISOString() });
-    createAlert("Page saved!");       
-    await getMonitoredPageList()        
-})
+  try {
+    watchButton.disabled = true;
+
+    const monitor = {
+      id: crypto.randomUUID(),
+      title: tab.title || "Untitled page",
+      url: tab.url,
+      savedAt: new Date().toISOString()
+    };
+
+    const serverMonitor = await createMonitor(monitor);
+
+    createAlert("Page saved!", "success");
+
+    await renderMonitorList();
+
+  } catch (error) {
+
+    createAlert( error.message || "Unable to save page.", "error");
+
+  } finally {
+
+    watchButton.disabled = false;
+
+  }
+});
+
