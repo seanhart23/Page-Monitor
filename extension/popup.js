@@ -42,9 +42,11 @@ watchButton.addEventListener("click", async () => {
       id: crypto.randomUUID(),
       title: tab.title || "Untitled page",
       url: tab.url,
+      icon: tab.favIconUrl,
       savedAt: new Date().toISOString()
     };
 
+    alert(JSON.stringify(tab.favIconUrl))
     const serverMonitor = await createMonitor(monitor);
 
     createAlert("Page saved!", "success");

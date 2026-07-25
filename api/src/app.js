@@ -3,12 +3,14 @@ import cors from "cors";
 
 import monitorRoutes from "./routes/monitorRoutes.js";
 import installationRoutes from "./routes/installationRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use("/api/installations", installationRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/api/health", (request, response) => {
   response.json({

@@ -47,9 +47,12 @@ export async function checkMonitor(monitor) {
 
         if (changed) {
             monitor.lastChangedAt = checkedAt;
-            monitor.changeCount =
-                (monitor.changeCount ?? 0) + 1;
+            monitor.lastCheckChanged = true;
+            monitor.changeCount = (monitor.changeCount ?? 0) + 1;
+            monitor.notificationPending = true;
             console.log(cleanedContent)
+        } else {
+            monitor.lastCheckChanged = false;
         }
 
         await monitor.save();

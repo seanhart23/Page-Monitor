@@ -20,10 +20,14 @@ const monitorSchema = new mongoose.Schema(
             trim: true
         },
 
+        icon: {
+            type: String,
+            trim: true
+        },
+
         normalizedUrl: {
             type: String,
             required: true,
-            unique: true,
             index: true
         },
 
@@ -59,6 +63,11 @@ const monitorSchema = new mongoose.Schema(
             default: null
         },
 
+        lastCheckChanged: {
+            type: Boolean,
+            default: false
+        },
+
         lastChangedAt: {
             type: Date,
             default: null
@@ -80,9 +89,29 @@ const monitorSchema = new mongoose.Schema(
             default: 0,
             min: 0
         },
+
+        notificationPending: {
+            type: Boolean,
+            default: false
+        },
+
+        lastNotifiedAt: {
+            type: Date,
+            default: null
+        },
     },
     {
         timestamps: true
+    }
+);
+
+monitorSchema.index(
+    {
+        installationId: 1,
+        url: 1
+    },
+    {
+        unique: true
     }
 );
 

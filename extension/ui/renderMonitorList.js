@@ -9,6 +9,7 @@ export async function renderMonitorList() {
     
     trackedPageElement.innerHTML = monitors.map((item) => 
         `<tr>
+            <td><img src="${item.icon}"></td>
             <td>
                 <h3><strong>${item.title}</strong></h3>
                 <div>Status: ${getStatusText(item)}</div>

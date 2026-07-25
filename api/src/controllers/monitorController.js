@@ -27,7 +27,7 @@ export async function getMonitors(request, response) {
 
 export async function createMonitor(request, response) {
   try {
-    const { title, url } = request.body;
+    const { title, url, icon } = request.body;
 
     if (!url) {
       return response.status(400).json({
@@ -48,7 +48,9 @@ export async function createMonitor(request, response) {
     }
 
     const existingMonitor = await Monitor.findOne({
-      normalizedUrl
+      normalizedUrl,
+      installationId:
+        request.installation.installationId
     });
 
     if (existingMonitor) {
@@ -62,6 +64,7 @@ export async function createMonitor(request, response) {
       title: title?.trim() || "Untitled page",
       url,
       normalizedUrl,
+      icon,
       installationId:
         request.installation.installationId
     });

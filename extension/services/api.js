@@ -58,3 +58,22 @@ async function apiFetch(path, options = {}) {
 
     return result;
 }
+
+export async function getPendingNotifications() {
+    const result = await apiFetch(
+        "/notifications/pending"
+    );
+
+    return result.data ?? [];
+}
+
+export async function acknowledgeNotification(
+    monitorId
+) {
+    return apiFetch(
+        `/notifications/${monitorId}/acknowledge`,
+        {
+            method: "POST"
+        }
+    );
+}
