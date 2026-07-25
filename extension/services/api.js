@@ -77,3 +77,13 @@ export async function acknowledgeNotification(
         }
     );
 }
+
+export async function getMonitorHistory(
+    monitorId
+) {
+    const response = await apiFetch(
+        `/monitors/${monitorId}/history`
+    );
+
+    return response.data ?? [];
+}

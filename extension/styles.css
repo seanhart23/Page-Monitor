@@ -33,3 +33,42 @@ button {
 table {
     width: 100%;
 }
+
+.history-list {
+    margin-top: 12px;
+    padding-left: 8px;
+}
+
+.history-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid #e2e8f0;
+}
+
+.history-dot {
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: #2563eb;
+    flex-shrink: 0;
+}
+
+.history-summary {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.history-date {
+    margin-top: 3px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.history-empty {
+    padding: 12px 0;
+    font-size: 13px;
+    color: #64748b;
+}

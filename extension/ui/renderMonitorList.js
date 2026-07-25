@@ -1,5 +1,7 @@
 import { createAlert } from "./alerts.js";
-import { deleteMonitor, getMonitors, checkMonitorNow } from "../services/api.js";
+import { deleteMonitor, getMonitors, checkMonitorNow, getMonitorHistory } from "../services/api.js";
+import { renderHistory } from "../popup.js";
+
 
 const trackedPageElement = document.getElementById("tracked-pages");
 const deleteButton = document.getElementsByClassName("delete-button");
@@ -19,7 +21,12 @@ export async function renderMonitorList() {
             </td>
             <td>
                 <button class="check-monitor-button" data-id="${item._id}">Check now</button>
+                <button class="history-button" data-monitor-id="${item._id}">History</button>
                 <button class="delete-button" data-id="${item._id}">Delete</button>
+            </td>
+        </tr>
+            <td colspan="3">
+                <div class="history-container" id="history-${item._id}"></div>
             </td>
         </tr>`
     ).join('');
@@ -37,6 +44,14 @@ export async function renderMonitorList() {
         button.addEventListener('click', async (event) => {
             await checkMonitorNow(event.target.getAttribute('data-id'));
             await renderMonitorList();
+        });
+    });
+
+    document.querySelectorAll(".history-button").forEach(button => {
+        button.addEventListener("click", async () => {
+            const monitorId = button.dataset.monitorId;
+            const history = await getMonitorHistory(monitorId);
+            document.getElementById(`history-${monitorId}`).innerHTML = renderHistory(history);
         });
     });
 

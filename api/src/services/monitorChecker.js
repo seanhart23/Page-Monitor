@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { Monitor } from "../models/monitor.js";
 import { extractMeaningfulContent } from "./contentExtractor.js";
 import { createFingerprint } from "./fingerprint.js";
+import { ChangeEvent } from "../models/changeEvent.js";
 
 export async function checkMonitor(monitor) {
     try {
@@ -29,13 +30,15 @@ export async function checkMonitor(monitor) {
         const newFingerprint =
             createFingerprint(cleanedContent);
 
+        
+
         const previousFingerprint =
             monitor.lastFingerprint;
 
         const isFirstCheck = !previousFingerprint;
-
+        
         const changed =
-            !isFirstCheck &&
+            previousFingerprint !== null &&
             previousFingerprint !== newFingerprint;
 
         const checkedAt = new Date();
@@ -46,14 +49,31 @@ export async function checkMonitor(monitor) {
         monitor.lastFingerprint = newFingerprint;
 
         if (changed) {
-            monitor.lastChangedAt = checkedAt;
-            monitor.lastCheckChanged = true;
-            monitor.changeCount = (monitor.changeCount ?? 0) + 1;
-            monitor.notificationPending = true;
-            console.log(cleanedContent)
+            if (changed) {
+                await ChangeEvent.create({
+                    monitorId: monitor._id,
+                    installationId: monitor.installationId,
+                    previousFingerprint,
+                    newFingerprint,
+                    summary: "Page content changed",
+                    checkedAt: new Date()
+                });
+
+                monitor.lastCheckChanged = true;
+                monitor.lastChangedAt = new Date();
+                monitor.changeCount += 1;
+                monitor.notificationPending = true;
+                console.log(cleanedContent);
+            }
         } else {
             monitor.lastCheckChanged = false;
         }
+
+        monitor.lastFingerprint =
+            newFingerprint;
+
+        monitor.lastCheckedAt =
+            new Date();
 
         await monitor.save();
 
