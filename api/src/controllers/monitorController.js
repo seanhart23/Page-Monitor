@@ -1,10 +1,14 @@
 import { Monitor } from "../models/monitor.js";
 import { normalizeUrl } from "../utils/normalizeUrl.js";
+import { checkMonitor } from "../services/monitorChecker.js";
 
 export async function getMonitors(request, response) {
   try {
-    const monitors = await Monitor.find().sort({
-      createdAt: -1
+    const monitors = await Monitor.find({
+      installationId:
+        request.installation.installationId
+    }).sort({
+      createdAt: -1,
     });
 
     response.json({
@@ -57,7 +61,9 @@ export async function createMonitor(request, response) {
     const monitor = await Monitor.create({
       title: title?.trim() || "Untitled page",
       url,
-      normalizedUrl
+      normalizedUrl,
+      installationId:
+        request.installation.installationId
     });
 
     return response.status(201).json({
@@ -76,9 +82,11 @@ export async function createMonitor(request, response) {
 
 export async function deleteMonitor(request, response) {
   try {
-    const monitor = await Monitor.findByIdAndDelete(
-      request.params.id
-    );
+    const monitor = await Monitor.findByIdAndDelete({
+      _id: request.params.id,
+        installationId:
+            request.installation.installationId
+  });
 
     if (!monitor) {
       return response.status(404).json({
@@ -99,4 +107,37 @@ export async function deleteMonitor(request, response) {
       message: "Unable to delete monitor"
     });
   }
+}
+
+export async function checkMonitorNow(request, response) {
+    try {
+        const monitor = await Monitor.findOne({
+            _id: request.params.id,
+            installationId:
+                request.installation.installationId
+        });
+
+        if (!monitor) {
+            return response.status(404).json({
+                success: false,
+                message: "Monitor not found"
+            });
+        }
+
+        const result = await checkMonitor(monitor);
+
+        return response.json({
+            success: result.success,
+            changed: result.changed,
+            data: monitor,
+            error: result.error
+        });
+    } catch (error) {
+        console.error("Unable to check monitor:", error);
+
+        return response.status(500).json({
+            success: false,
+            message: "Unable to check monitor"
+        });
+    }
 }

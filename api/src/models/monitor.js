@@ -1,49 +1,89 @@
 import mongoose from "mongoose";
 
 const monitorSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      trim: true,
-      default: "Untitled page"
-    },
+    {
+        installationId: {
+            type: String,
+            required: true,
+            index: true
+        },
 
-    url: {
-      type: String,
-      required: true,
-      trim: true
-    },
+        title: {
+            type: String,
+            trim: true,
+            default: "Untitled page"
+        },
 
-    normalizedUrl: {
-      type: String,
-      required: true,
-      unique: true
-    },
+        url: {
+            type: String,
+            required: true,
+            trim: true
+        },
 
-    enabled: {
-      type: Boolean,
-      default: true
-    },
+        normalizedUrl: {
+            type: String,
+            required: true,
+            unique: true,
+            index: true
+        },
 
-    checkFrequency: {
-      type: String,
-      enum: ["hourly", "daily", "weekly"],
-      default: "daily"
-    },
+        enabled: {
+            type: Boolean,
+            default: true
+        },
 
-    lastCheckedAt: {
-      type: Date,
-      default: null
-    },
+        checkFrequency: {
+            type: String,
+            enum: ["hourly", "daily", "weekly"],
+            default: "daily"
+        },
 
-    lastChangedAt: {
-      type: Date,
-      default: null
+         contentSelector: {
+            type: String,
+            trim: true,
+            default: "body"
+        },
+
+        ignoreSelectors: {
+            type: [String],
+            default: []
+        },
+
+        lastFingerprint: {
+            type: String,
+            default: null
+        },
+
+        lastCheckedAt: {
+            type: Date,
+            default: null
+        },
+
+        lastChangedAt: {
+            type: Date,
+            default: null
+        },
+
+        lastStatus: {
+            type: String,
+            enum: ["pending", "success", "failed"],
+            default: "pending"
+        },
+
+        lastError: {
+            type: String,
+            default: null
+        },
+
+        changeCount: {
+            type: Number,
+            default: 0,
+            min: 0
+        },
+    },
+    {
+        timestamps: true
     }
-  },
-  {
-    timestamps: true
-  }
 );
 
 export const Monitor = mongoose.model("Monitor", monitorSchema);

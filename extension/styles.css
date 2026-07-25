@@ -19,12 +19,6 @@ h2 {
   color: #555;
 }
 
-.delete-button {
-    width: auto;
-    margin-bottom: 12px;
-    float: right;
-}
-
 button {
   width: 100%;
   padding: 10px;

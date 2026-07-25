@@ -1,47 +1,60 @@
 const API_BASE_URL = "http://localhost:3000/api";
 
 export async function createMonitor(monitor) {
-  const response = await fetch(`${API_BASE_URL}/monitors`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(monitor)
-  });
+  const result = await apiFetch("/monitors", {
+        method: "POST",
+        body: JSON.stringify(monitor)
+    });
 
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.message || "Unable to create monitor");
-  }
-
-  console.log(response);
-
-  return result.data;
-  
+    return result.data ?? result;
 }
 
 export async function getMonitors() {
-  const response = await fetch(`${API_BASE_URL}/monitors`);
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.message || "Unable to load monitors");
-  }
-
-  return result.data;
+  const result = await apiFetch("/monitors");
+  return result.data ?? result;
 }
 
 export async function deleteMonitor(id) {
-  const response = await fetch(`${API_BASE_URL}/monitors/${id}`, {
-    method: "DELETE"
-  });
+  return apiFetch(`/monitors/${id}`, {
+        method: "DELETE"
+    });
+}
 
-  const result = await response.json();
+export async function checkMonitorNow(id) {
+   return apiFetch(`/monitors/${id}/check`, {
+        method: "POST"
+    });
+}
 
-  if (!response.ok) {
-    throw new Error(result.message || "Unable to delete monitor");
-  }
+import {
+    ensureInstallationCredentials
+} from "./installation.js";
 
-  return result.data;
+async function apiFetch(path, options = {}) {
+    const credentials = await ensureInstallationCredentials();
+
+    const response = await fetch(
+        `${API_BASE_URL}${path}`,
+        {
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Installation-Id":
+                    credentials.installationId,
+                "X-Installation-Secret":
+                    credentials.installationSecret,
+                ...options.headers
+            }
+        }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            result.message || "API request failed"
+        );
+    }
+
+    return result;
 }
