@@ -8,7 +8,7 @@
     "start": "node src/server.js"
   },
   "host_permissions": [
-    "http://localhost:3000/*"
+    "https://smart-page-monitor.onrender.com/*"
   ],
   "dependencies": {
     "cheerio": "^1.2.0",
