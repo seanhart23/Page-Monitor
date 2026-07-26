@@ -52,24 +52,31 @@ async function apiFetch(path, options = {}) {
     const contentType =
         response.headers.get("content-type") || "";
 
-    let result;
+    const responseText = await response.text();
 
-    if (contentType.includes("application/json")) {
-        result = await response.json();
-    } else {
-        const text = await response.text();
+    let result = {};
 
-        result = {
-            success: false,
-            message:
-                text.trim() ||
-                `Request failed with status ${response.status}`
-        };
+    if (responseText.trim()) {
+        if (contentType.includes("application/json")) {
+            try {
+                result = JSON.parse(responseText);
+            } catch {
+                throw new Error(
+                    `The API returned invalid JSON. Status: ${response.status}`
+                );
+            }
+        } else {
+            result = {
+                success: false,
+                message: responseText.trim()
+            };
+        }
     }
 
     if (!response.ok) {
         const error = new Error(
-            result.message || "API request failed"
+            result.message ||
+            `API request failed with status ${response.status}`
         );
 
         error.code = result.code;
