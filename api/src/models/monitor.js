@@ -42,6 +42,12 @@ const monitorSchema = new mongoose.Schema(
             default: "daily"
         },
 
+        checkInterval: {
+            type: Number,
+            default: 30,
+            min: 1
+        },
+
          contentSelector: {
             type: String,
             trim: true,
@@ -84,6 +90,12 @@ const monitorSchema = new mongoose.Schema(
             default: null
         },
 
+        lastContent: {
+            type: String,
+            default: "",
+            select: false
+        },
+
         changeCount: {
             type: Number,
             default: 0,
@@ -108,7 +120,7 @@ const monitorSchema = new mongoose.Schema(
 monitorSchema.index(
     {
         installationId: 1,
-        url: 1
+        normalizedUrl: 1
     },
     {
         unique: true

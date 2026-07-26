@@ -34,7 +34,53 @@ const changeEventSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
             index: true
-        }
+        },
+
+        changeType: {
+            type: String,
+            enum: [
+                "added",
+                "removed",
+                "modified",
+                "none"
+            ],
+            default: "modified"
+        },
+
+        removedText: {
+            type: String,
+            default: ""
+        },
+
+        addedText: {
+            type: String,
+            default: ""
+        },
+
+        beforeContext: {
+            type: String,
+            default: ""
+        },
+
+        afterContext: {
+            type: String,
+            default: ""
+        },
+
+        removedWordCount: {
+            type: Number,
+            default: 0
+        },
+
+        addedWordCount: {
+            type: Number,
+            default: 0
+        },
+
+        wasTruncated: {
+            type: Boolean,
+            default: false
+        },
     },
     {
         timestamps: true

@@ -28,7 +28,69 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     processPendingNotifications();
 });
 
+function createNotificationMessage(change) {
+    const addedText =
+        change?.addedText?.trim() || "";
+
+    const removedText =
+        change?.removedText?.trim() || "";
+
+    if (addedText && removedText) {
+        return truncateNotificationText(
+            `Changed to: ${addedText}`,
+            180
+        );
+    }
+
+    if (addedText) {
+        return truncateNotificationText(
+            `Added: ${addedText}`,
+            180
+        );
+    }
+
+    if (removedText) {
+        return truncateNotificationText(
+            `Removed: ${removedText}`,
+            180
+        );
+    }
+
+    return (
+        change?.summary ||
+        "The page content has changed."
+    );
+}
+
+function truncateNotificationText(
+    text,
+    maxLength = 180
+) {
+    const safeText = String(text)
+        .replace(/\s+/g, " ")
+        .trim();
+
+    if (safeText.length <= maxLength) {
+        return safeText;
+    }
+
+    return `${safeText.slice(
+        0,
+        maxLength - 1
+    )}…`;
+}
+
 async function processPendingNotifications() {
+    const {
+        notificationsEnabled = true
+    } = await chrome.storage.sync.get({
+        notificationsEnabled: true
+    });
+
+    if (!notificationsEnabled) {
+        return;
+    }
+
     try {
         const permissionLevel =
             await chrome.notifications.getPermissionLevel();
@@ -53,11 +115,8 @@ async function processPendingNotifications() {
                     {
                         type: "basic",
                         iconUrl: "./icons/icon.png",
-                        title: "Page changed",
-                        message:
-                            monitor.title ||
-                            monitor.url ||
-                            "A monitored page changed",
+                        title: `${monitor.title} changed`,
+                        message: createNotificationMessage(change),
                         priority: 2,
                         requireInteraction: true
                     }

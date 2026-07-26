@@ -27,7 +27,7 @@ export async function getMonitors(request, response) {
 
 export async function createMonitor(request, response) {
   try {
-    const { title, url, icon } = request.body;
+    const { title, url, icon, checkInterval } = request.body;
 
     if (!url) {
       return response.status(400).json({
@@ -65,6 +65,7 @@ export async function createMonitor(request, response) {
       url,
       normalizedUrl,
       icon,
+      checkInterval: Number(checkInterval) || 30,
       installationId:
         request.installation.installationId
     });
@@ -85,11 +86,11 @@ export async function createMonitor(request, response) {
 
 export async function deleteMonitor(request, response) {
   try {
-    const monitor = await Monitor.findByIdAndDelete({
+    const monitor = await Monitor.findOneAndDelete({
       _id: request.params.id,
-        installationId:
-            request.installation.installationId
-  });
+      installationId:
+        request.installation.installationId
+    });
 
     if (!monitor) {
       return response.status(404).json({

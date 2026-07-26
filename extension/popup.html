@@ -1,22 +1,134 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Page Monitor</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/styles/styles.css">
 </head>
 <body>
-  <h2>Page Monitor</h2>
+  <div class="app-shell" id="app-shell">
+    <section class="screen monitor-screen" id="monitor-screen">
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </div>
+          <div>
+            <h1>Smart Page Monitor</h1>
+            <p>Stay informed. Never miss a page update</p>
+          </div>
+        </div>
+        <button class="settings-button" id="openSettingsButton" type="button" aria-label="Open settings" title="Settings">⚙</button>
+      </header>
 
-  <p id="page-title">Loading page...</p>
-  <p id="page-url"></p>
+      <section class="health-card" id="health-card">
+        <div class="health-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="m7 12 3 3 7-7"></path></svg>
+        </div>
+        <div class="health-copy">
+          <h2 id="health-title">Everything looks good</h2>
+          <p><span id="monitor-count">0</span> monitored pages</p>
+        </div>
+        <div class="health-meta">
+          <span id="last-check">Not checked</span>
+          <span><strong id="changed-today">0</strong> changed today</span>
+        </div>
+      </section>
 
-  <button id="watch-button">Watch This Page</button>
-  <p id="status"></p>
-  <h3><u>Tracked Pages</u></h3>
-  <table id="tracked-pages">
-  </table>
+      <section class="current-page-card">
+        <div class="current-page-copy">
+          <span class="eyebrow">Current page</span>
+          <h2 id="page-title">Loading page...</h2>
+          <p id="page-url"></p>
+        </div>
+        <button id="watch-button" class="primary-button" type="button">
+          <span class="button-plus">+</span>
+          <span>Monitor this page</span>
+        </button>
+        <p id="status" class="inline-status" aria-live="polite"></p>
+      </section>
 
-<script type="module" src="popup.js"></script>
+      <div class="toolbar">
+        <label class="search-field">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 5 5"></path></svg>
+          <input id="monitor-search" type="search" placeholder="Search monitors..." autocomplete="off">
+        </label>
+        <select id="monitor-filter" aria-label="Filter monitors">
+          <option value="all">All</option>
+          <option value="changed">Changed</option>
+          <option value="active">Active</option>
+          <option value="failed">Failed</option>
+        </select>
+      </div>
+
+      <main>
+        <div id="loading-state" class="message-state">Loading monitors...</div>
+        <div id="empty-state" class="empty-state hidden">
+          <div class="empty-icon">◎</div>
+          <h2>No monitored pages yet</h2>
+          <p>Open a page and add it to start tracking changes.</p>
+        </div>
+        <div id="monitor-list" class="monitor-list"></div>
+      </main>
+    </section>
+
+    <section class="screen detail-screen" id="detail-screen" aria-hidden="true">
+      <header class="detail-header">
+        <button class="icon-button" id="back-button" type="button" aria-label="Back">
+          <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>
+        </button>
+        <h1 id="detail-header-title">Monitor</h1>
+        <button class="icon-button" id="open-page-button" type="button" aria-label="Open page">
+          <svg viewBox="0 0 24 24"><path d="M14 5h5v5"></path><path d="m10 14 9-9"></path><path d="M19 13v6H5V5h6"></path></svg>
+        </button>
+      </header>
+
+      <div class="detail-content">
+        <section class="detail-overview">
+          <div class="site-icon large" id="detail-site-icon">W</div>
+          <div class="detail-overview-copy">
+            <h2 id="detail-title">Page title</h2>
+            <p id="detail-domain">example.com</p>
+            <span id="detail-status" class="status-pill status-ok">Active</span>
+          </div>
+        </section>
+
+        <section class="stats-grid">
+          <div><strong id="detail-change-count">0</strong><span>Total changes</span></div>
+          <div><strong id="detail-last-change">Never</strong><span>Last change</span></div>
+          <div><strong id="detail-last-checked">Never</strong><span>Last checked</span></div>
+        </section>
+
+        <div class="detail-actions">
+          <button id="check-now-button" class="secondary-button" type="button">Check now</button>
+          <button id="delete-monitor-button" class="danger-button" type="button">Delete</button>
+        </div>
+
+        <section class="history-section">
+          <div class="section-heading">
+            <h2>Change history</h2>
+            <span id="history-total">0 events</span>
+          </div>
+          <div id="history-loading" class="message-state compact">Loading history...</div>
+          <div id="history-empty" class="message-state compact hidden">No changes recorded yet.</div>
+          <div id="history-list" class="history-list"></div>
+          <div id="changePreview" class="change-preview" hidden>
+            <div class="change-preview__section">
+              <span class="change-preview__label">Removed</span>
+              <p id="removedChangeText" class="change-preview__text change-preview__text--removed"></p>
+            </div>
+            <div class="change-preview__section">
+              <span class="change-preview__label">Added</span>
+              <p id="addedChangeText" class="change-preview__text change-preview__text--added"></p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script type="module" src="./scripts/popup.js"></script>
 </body>
 </html>

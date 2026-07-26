@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>Smart Page Monitor Settings</title>
+
+    <link
+        rel="stylesheet"
+        href="./styles/settings.css"
+    >
+</head>
+
+<body>
+
+    <main class="settings-page">
+
+        <header class="page-header">
+
+            <div class="brand">
+
+                <div class="brand-icon" aria-hidden="true">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        role="img"
+                    >
+                        <path
+                            d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"
+                        />
+
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="3"
+                        />
+                    </svg>
+
+                </div>
+
+                <div>
+                    <h1>Settings</h1>
+                    <p>Customize Smart Page Monitor</p>
+                </div>
+
+            </div>
+
+        </header>
+
+        <section class="settings-grid">
+
+            <!-- Notifications -->
+            <article class="settings-card">
+
+                <div class="card-heading">
+
+                    <div class="heading-icon">
+                        🔔
+                    </div>
+
+                    <div>
+                        <h2>Notifications</h2>
+                        <p>Control desktop change alerts.</p>
+                    </div>
+
+                </div>
+
+                <div class="setting-row">
+
+                    <div class="setting-copy">
+                        <label for="notificationsEnabled">
+                            Desktop notifications
+                        </label>
+
+                        <p>
+                            Receive an alert when a monitored page changes.
+                        </p>
+                    </div>
+
+                    <label class="toggle">
+
+                        <input
+                            id="notificationsEnabled"
+                            type="checkbox"
+                        >
+
+                        <span class="toggle-slider"></span>
+
+                    </label>
+
+                </div>
+
+                <button
+                    id="testNotificationButton"
+                    class="secondary-button"
+                    type="button"
+                >
+                    Send test notification
+                </button>
+
+                <p
+                    id="notificationStatus"
+                    class="inline-status"
+                    aria-live="polite"
+                ></p>
+
+            </article>
+
+            <!-- General -->
+            <article class="settings-card">
+
+                <div class="card-heading">
+
+                    <div class="heading-icon">
+                        ⏱️
+                    </div>
+
+                    <div>
+                        <h2>General</h2>
+                        <p>Choose the defaults for new monitors.</p>
+                    </div>
+
+                </div>
+
+                <div class="field-group">
+
+                    <label for="defaultCheckInterval">
+                        Default check interval
+                    </label>
+
+                    <select id="defaultCheckInterval">
+                        <option value="5">Every 5 minutes</option>
+                        <option value="10">Every 10 minutes</option>
+                        <option value="15">Every 15 minutes</option>
+                        <option value="30">Every 30 minutes</option>
+                        <option value="60">Every hour</option>
+                        <option value="120">Every 2 hours</option>
+                        <option value="360">Every 6 hours</option>
+                        <option value="720">Every 12 hours</option>
+                        <option value="1440">Every 24 hours</option>
+                    </select>
+
+                    <p class="field-help">
+                        This applies when a new monitor is created.
+                        Existing monitors keep their current interval.
+                    </p>
+
+                </div>
+
+                <div class="setting-row">
+
+                    <div class="setting-copy">
+
+                        <label for="autoDetectCurrentTab">
+                            Detect current page automatically
+                        </label>
+
+                        <p>
+                            Load information from the active browser tab
+                            when the popup opens.
+                        </p>
+
+                    </div>
+
+                    <label class="toggle">
+
+                        <input
+                            id="autoDetectCurrentTab"
+                            type="checkbox"
+                        >
+
+                        <span class="toggle-slider"></span>
+
+                    </label>
+
+                </div>
+
+            </article>
+
+            <!-- Statistics -->
+            <article class="settings-card">
+
+                <div class="card-heading">
+
+                    <div class="heading-icon">
+                        📊
+                    </div>
+
+                    <div>
+                        <h2>Statistics</h2>
+                        <p>Your current monitoring activity.</p>
+                    </div>
+
+                </div>
+
+                <div class="stats-grid">
+
+                    <div class="stat">
+                        <span
+                            id="totalMonitors"
+                            class="stat-value"
+                        >
+                            —
+                        </span>
+
+                        <span class="stat-label">
+                            Total monitors
+                        </span>
+                    </div>
+
+                    <div class="stat">
+                        <span
+                            id="activeMonitors"
+                            class="stat-value"
+                        >
+                            —
+                        </span>
+
+                        <span class="stat-label">
+                            Active
+                        </span>
+                    </div>
+
+                    <div class="stat">
+                        <span
+                            id="disabledMonitors"
+                            class="stat-value"
+                        >
+                            —
+                        </span>
+
+                        <span class="stat-label">
+                            Disabled
+                        </span>
+                    </div>
+
+                    <div class="stat">
+                        <span
+                            id="totalChanges"
+                            class="stat-value"
+                        >
+                            —
+                        </span>
+
+                        <span class="stat-label">
+                            Changes found
+                        </span>
+                    </div>
+
+                </div>
+
+                <p
+                    id="statisticsStatus"
+                    class="inline-status"
+                    aria-live="polite"
+                ></p>
+
+            </article>
+
+            <!-- Connection -->
+            <article class="settings-card">
+
+                <div class="card-heading">
+
+                    <div class="heading-icon">
+                        🌐
+                    </div>
+
+                    <div>
+                        <h2>Connection</h2>
+                        <p>Check the monitoring service status.</p>
+                    </div>
+
+                </div>
+
+                <div class="connection-row">
+
+                    <div class="connection-status">
+
+                        <span
+                            id="connectionIndicator"
+                            class="status-indicator status-checking"
+                        ></span>
+
+                        <div>
+                            <strong id="connectionLabel">
+                                Checking connection…
+                            </strong>
+
+                            <p id="connectionMessage">
+                                Contacting the Smart Page Monitor service.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <button
+                        id="checkConnectionButton"
+                        class="icon-button"
+                        type="button"
+                        aria-label="Check connection again"
+                        title="Check connection again"
+                    >
+                        ↻
+                    </button>
+
+                </div>
+
+            </article>
+
+            <!-- About -->
+            <article class="settings-card about-card">
+
+                <div class="card-heading">
+
+                    <div class="heading-icon">
+                        ℹ️
+                    </div>
+
+                    <div>
+                        <h2>About</h2>
+                        <p>Extension and support information.</p>
+                    </div>
+
+                </div>
+
+                <dl class="about-list">
+
+                    <div>
+                        <dt>Extension</dt>
+                        <dd>Smart Page Monitor</dd>
+                    </div>
+
+                    <div>
+                        <dt>Version</dt>
+                        <dd id="extensionVersion">—</dd>
+                    </div>
+
+                </dl>
+
+                <div class="about-links">
+
+                    <a
+                        id="privacyLink"
+                        href="https://YOUR-WEBSITE.com/privacy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Privacy policy
+                    </a>
+
+                    <a
+                        id="supportLink"
+                        href="https://YOUR-WEBSITE.com/support"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Support
+                    </a>
+
+                </div>
+
+            </article>
+
+        </section>
+
+        <footer class="settings-footer">
+
+            <div
+                id="saveMessage"
+                class="save-message"
+                aria-live="polite"
+            ></div>
+
+            <button
+                id="saveSettingsButton"
+                class="primary-button"
+                type="button"
+            >
+                Save settings
+            </button>
+
+        </footer>
+
+    </main>
+
+    <script
+        type="module"
+        src="./scripts/settings.js"
+    ></script>
+
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta
+    name="description"
+    content="Smart Page Monitor watches webpages and alerts you when their content changes."
+  >
+
+  <title>Smart Page Monitor</title>
+
+  <link rel="stylesheet" href="../styles/site.css">
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container header-content">
+      <a class="brand" href="index.html">
+        <span class="brand-icon">◉</span>
+        <span>Smart Page Monitor</span>
+      </a>
+
+      <nav class="navigation" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="support.html">Support</a>
+        <a href="privacy.html">Privacy</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-content">
+        <div class="hero-copy">
+          <p class="eyebrow">Website change monitoring</p>
+
+          <h1>
+            Stay informed without constantly refreshing.
+          </h1>
+
+          <p class="hero-description">
+            Smart Page Monitor watches webpages for changes
+            and sends a notification when new content is
+            detected.
+          </p>
+
+          <div class="button-row">
+            <a
+              class="button primary-button"
+              href="#features"
+            >
+              Explore features
+            </a>
+
+            <a
+              class="button secondary-button"
+              href="support.html"
+            >
+              Get support
+            </a>
+          </div>
+        </div>
+
+        <div class="preview-card">
+          <div class="preview-header">
+            <span class="preview-icon">◉</span>
+
+            <div>
+              <strong>Smart Page Monitor</strong>
+              <span>Monitoring active</span>
+            </div>
+          </div>
+
+          <div class="preview-monitor">
+            <div>
+              <strong>Example product page</strong>
+              <span>example.com</span>
+            </div>
+
+            <span class="status-badge">Changed</span>
+          </div>
+
+          <p class="preview-message">
+            A change was detected on a page you monitor.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">Features</p>
+          <h2>Monitor important pages automatically</h2>
+
+          <p>
+            Track the pages that matter and receive an alert
+            when their content changes.
+          </p>
+        </div>
+
+        <div class="card-grid">
+          <article class="feature-card">
+            <span class="feature-icon">◌</span>
+            <h3>Automatic monitoring</h3>
+
+            <p>
+              Add a webpage once and Smart Page Monitor will
+              continue checking it based on your selected
+              interval.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon">◆</span>
+            <h3>Change notifications</h3>
+
+            <p>
+              Receive a browser notification when monitored
+              page content changes.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon">↻</span>
+            <h3>Check history</h3>
+
+            <p>
+              Review past detected changes and see when a page
+              was last checked.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon">⚙</span>
+            <h3>Custom intervals</h3>
+
+            <p>
+              Choose how frequently new monitors should be
+              checked.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon">✓</span>
+            <h3>Simple setup</h3>
+
+            <p>
+              Open a webpage, click the extension, and start
+              monitoring it in seconds.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon">◇</span>
+            <h3>Privacy-conscious</h3>
+
+            <p>
+              Smart Page Monitor only collects information
+              needed to provide its monitoring features.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section use-cases-section">
+      <div class="container split-layout">
+        <div>
+          <p class="eyebrow">Use cases</p>
+          <h2>Useful for pages that change over time</h2>
+
+          <p>
+            Smart Page Monitor can help you keep track of
+            frequently updated website content.
+          </p>
+        </div>
+
+        <ul class="check-list">
+          <li>Product availability and restocks</li>
+          <li>Price changes</li>
+          <li>Job listings</li>
+          <li>Ticket availability</li>
+          <li>School or company announcements</li>
+          <li>Documentation and release notes</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container callout">
+        <div>
+          <p class="eyebrow">Need assistance?</p>
+          <h2>Visit the support page</h2>
+
+          <p>
+            Find troubleshooting steps or contact the Smart
+            Page Monitor support team.
+          </p>
+        </div>
+
+        <a
+          class="button primary-button"
+          href="support.html"
+        >
+          Get support
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <p>
+        © <span id="current-year"></span>
+        Smart Page Monitor.
+      </p>
+
+      <div class="footer-links">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="support.html">Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("current-year").textContent =
+      new Date().getFullYear();
+  </script>
+</body>
+</html>

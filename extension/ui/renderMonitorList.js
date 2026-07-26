@@ -1,6 +1,6 @@
 import { createAlert } from "./alerts.js";
 import { deleteMonitor, getMonitors, checkMonitorNow, getMonitorHistory } from "../services/api.js";
-import { renderHistory } from "../popup.js";
+import { renderHistory } from "./scripts/popup.js";
 
 
 const trackedPageElement = document.getElementById("tracked-pages");
@@ -136,3 +136,48 @@ window.addEventListener(
     "unload",
     stopMonitorPolling
 );
+function showChangePreview(change) {
+
+    const preview =
+        document.querySelector("#changePreview");
+
+    const addedSection =
+        preview.querySelector(".added");
+
+    const removedSection =
+        preview.querySelector(".removed");
+
+    const addedText =
+        document.querySelector("#addedText");
+
+    const removedText =
+        document.querySelector("#removedText");
+
+    preview.hidden = false;
+
+    if (change.addedText) {
+
+        addedText.textContent =
+            change.addedText;
+
+        addedSection.hidden = false;
+
+    } else {
+
+        addedSection.hidden = true;
+
+    }
+
+    if (change.removedText) {
+
+        removedText.textContent =
+            change.removedText;
+
+        removedSection.hidden = false;
+
+    } else {
+
+        removedSection.hidden = true;
+
+    }
+}
