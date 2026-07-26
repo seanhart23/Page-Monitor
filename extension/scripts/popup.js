@@ -149,6 +149,7 @@ function renderMonitorList() {
       || (state.filter === "active" && monitor.enabled !== false)
       || (state.filter === "failed" && monitor.lastStatus === "failed");
     return matchesSearch && matchesFilter;
+    updateWatchButton(monitors);
   });
 
   elements.empty.classList.toggle("hidden", state.monitors.length !== 0);
@@ -220,6 +221,19 @@ async function handleWatchPage() {
     await loadMonitors();
 
   } catch (error) {
+
+    if (error.code === "MONITOR_LIMIT_REACHED") {
+      elements.status.textContent = error.message;
+      showToast(error.message, true);
+      return;
+    }
+
+    if (error.code === "MONITOR_ALREADY_EXISTS") {
+      elements.status.textContent = error.message;
+      showToast(error.message, true);
+      return;
+    }
+
     elements.status.textContent =
       error.message || "Unable to save page.";
 
@@ -495,3 +509,31 @@ openSettingsButton?.addEventListener(
         await chrome.runtime.openOptionsPage();
     }
 );
+
+const MAX_MONITORS = 25;
+
+function updateWatchButton(monitors) {
+    const limitReached =
+        monitors.length >= MAX_MONITORS;
+
+    elements.watchButton.disabled =
+        limitReached;
+
+    const buttonText =
+        elements.watchButton.querySelector(
+            "span:last-child"
+        );
+
+    if (limitReached) {
+        elements.watchButton.title =
+            `Maximum of ${MAX_MONITORS} monitors reached`;
+
+        buttonText.textContent =
+            "Monitor limit reached";
+    } else {
+        elements.watchButton.title = "";
+
+        buttonText.textContent =
+            "Monitor this page";
+    }
+}

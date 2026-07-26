@@ -31,7 +31,8 @@ import {
 } from "./installation.js";
 
 async function apiFetch(path, options = {}) {
-    const credentials = await ensureInstallationCredentials();
+    const credentials =
+        await ensureInstallationCredentials();
 
     const response = await fetch(
         `${API_BASE_URL}${path}`,
@@ -51,9 +52,16 @@ async function apiFetch(path, options = {}) {
     const result = await response.json();
 
     if (!response.ok) {
-        throw new Error(
+        const error = new Error(
             result.message || "API request failed"
         );
+
+        error.code = result.code;
+        error.status = response.status;
+        error.limit = result.limit;
+        error.currentCount = result.currentCount;
+
+        throw error;
     }
 
     return result;
