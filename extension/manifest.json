@@ -1,32 +1,39 @@
 {
   "manifest_version": 3,
   "name": "Smart Page Monitor",
-  "version": "1.0",
-  "description": "Smart Page Monitor automatically watches your favorite websites and instantly notifies you when content changes. Track product restocks, price drops, announcements, job listings, and more—without constantly refreshing your browser.",
+  "version": "1.0.0",
+  "description": "Smart Page Monitor watches webpages you choose and notifies you when their content changes.",
   "permissions": [
-    "tabs",
     "storage",
     "activeTab",
     "notifications",
     "alarms"
   ],
   "host_permissions": [
-    "http://localhost:3000/*",
-    "https://smart-page-monitor.onrender.com"
+    "https://smart-page-monitor.onrender.com/*",
+    "http://localhost:3000/"
   ],
   "options_ui": {
-      "page": "settings.html",
-      "open_in_tab": true
+    "page": "settings.html",
+    "open_in_tab": true
   },
   "background": {
-      "service_worker": "background.js",
-      "type": "module"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "action": {
     "default_popup": "popup.html",
-    "default_icon": "./icons/icon.png"
+    "default_icon": {
+      "16": "icons/icon.png",
+      "32": "icons/icon.png",
+      "48": "icons/icon.png",
+      "128": "icons/icon.png"
+    }
   },
   "icons": {
-    "128": "./icons/icon.png"
+    "16": "icons/icon.png",
+    "32": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
   }
 }

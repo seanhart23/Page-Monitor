@@ -247,6 +247,10 @@ async function processPendingNotifications() {
           monitor,
           change
         );
+
+        await acknowledgeNotification(
+          monitor._id
+        );
       } catch (error) {
         console.error(
           `Unable to show notification for monitor ${monitor._id}:`,
