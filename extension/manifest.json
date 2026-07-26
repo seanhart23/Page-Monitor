@@ -10,8 +10,7 @@
     "alarms"
   ],
   "host_permissions": [
-    "https://smart-page-monitor.onrender.com/*",
-    "http://localhost:3000/"
+    "https://smart-page-monitor.onrender.com/*"
   ],
   "options_ui": {
     "page": "settings.html",
