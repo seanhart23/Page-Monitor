@@ -10,7 +10,7 @@
 
 body {
   width: 420px;
-  min-height: 900px;
+  min-height: 720px;
   margin: 0;
   overflow-x: hidden;
   background: #f5f7fb;
@@ -36,14 +36,14 @@ svg {
 
 .app-shell {
   position: relative;
-  min-height: 900px;
+  min-height: 720px;
   overflow: hidden;
   background: #fff;
 }
 
 .screen {
   width: 100%;
-  min-height: 900px;
+  min-height: 720px;
   transition: transform 220ms ease, opacity 220ms ease;
 }
 
