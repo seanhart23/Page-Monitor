@@ -12,7 +12,7 @@
   ],
   "host_permissions": [
     "http://localhost:3000/*",
-    "https://your-real-backend-domain.com/*"
+    "https://smart-page-monitor.onrender.com"
   ],
   "options_ui": {
       "page": "settings.html",
