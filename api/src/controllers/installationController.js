@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { Installation } from "../models/Installation.js";
+import { Installation } from "../models/installation.js";
 
 function hashSecret(secret) {
     return crypto

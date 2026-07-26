@@ -1,4 +1,4 @@
-export const API_BASE_URL = "http://localhost:3000/api";
+import { API_BASE_URL } from "../config.js";
 
 export async function createMonitor(monitor) {
   const result = await apiFetch("/monitors", {

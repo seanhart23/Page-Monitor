@@ -58,7 +58,28 @@ svg { display: block; }
 .monitor-card:hover { transform: translateY(-1px); border-color: #c5d5f2; box-shadow: 0 8px 18px rgba(15,23,42,.07); }
 .site-icon { display: grid; width: 54px; height: 54px; place-items: center; overflow: hidden; border: 1px solid #e2e8f0; border-radius: 13px; background: #f8fafc; color: #1d4ed8; font-size: 20px; font-weight: 800; }
 .site-icon img { width: 32px; height: 32px; object-fit: contain; }
-.site-icon.large { width: 66px; height: 66px; border-radius: 18px; font-size: 25px; }
+.site-icon.large {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    flex: 0 0 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+    overflow: hidden;
+    align-self: flex-start;
+    margin-top: 3px;
+}
+.site-icon.large img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
 .monitor-copy { min-width: 0; }
 .monitor-copy h2 { overflow: hidden; margin: 0; font-size: 15px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .monitor-copy p { overflow: hidden; margin: 5px 0 0; color: #64748b; font-size: 12px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
@@ -210,4 +231,55 @@ svg { display: block; }
 .change-preview__text--added {
   background: #f1fbf5;
   color: #17663a;
+}
+
+.history-item__content {
+    min-width: 0;
+}
+
+.history-previews {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.history-preview {
+    overflow: hidden;
+    border: 1px solid #dfe5ef;
+    border-radius: 10px;
+}
+
+.history-preview__label {
+    display: block;
+    padding: 6px 9px;
+    border-bottom: 1px solid
+        rgba(0, 0, 0, 0.08);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.history-preview p {
+    max-height: 100px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 9px;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.history-preview--removed {
+    background: #fff3f3;
+    color: #9c2f2f;
+}
+
+.history-preview--removed p {
+    text-decoration: line-through;
+}
+
+.history-preview--added {
+    background: #effaf3;
+    color: #17663a;
 }

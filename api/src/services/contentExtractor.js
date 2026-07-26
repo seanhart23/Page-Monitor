@@ -63,7 +63,21 @@ export function extractMeaningfulContent(
         );
     }
 
-    return normalizeText(contentElement.text());
+    const extractedText = contentElement
+        .find("*")
+        .addBack()
+        .contents()
+        .map((_, node) => {
+            if (node.type === "text") {
+                return $(node).text();
+            }
+
+            return "";
+        })
+        .get()
+        .join(" ");
+
+    return normalizeText(extractedText);
 
 }
 

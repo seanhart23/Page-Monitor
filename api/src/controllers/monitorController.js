@@ -1,6 +1,7 @@
 import { Monitor } from "../models/monitor.js";
 import { normalizeUrl } from "../utils/normalizeUrl.js";
 import { checkMonitor } from "../services/monitorChecker.js";
+import { ChangeEvent } from "../models/changeEvent.js";
 
 export async function getMonitors(request, response) {
   try {
@@ -92,6 +93,11 @@ export async function deleteMonitor(request, response) {
         request.installation.installationId
     });
 
+    await ChangeEvent.deleteMany({
+        monitorId: monitor._id,
+        installationId: request.installation.installationId
+    });
+
     if (!monitor) {
       return response.status(404).json({
         success: false,
@@ -119,7 +125,7 @@ export async function checkMonitorNow(request, response) {
             _id: request.params.id,
             installationId:
                 request.installation.installationId
-        });
+        }).select("+lastContent");
 
         if (!monitor) {
             return response.status(404).json({

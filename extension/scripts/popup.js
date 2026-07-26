@@ -34,6 +34,7 @@ const elements = {
   detailScreen: document.getElementById("detail-screen"),
   backButton: document.getElementById("back-button"),
   openPageButton: document.getElementById("open-page-button"),
+  detailContent: document.getElementById("detail-content"),
   detailHeaderTitle: document.getElementById("detail-header-title"),
   detailTitle: document.getElementById("detail-title"),
   detailDomain: document.getElementById("detail-domain"),
@@ -236,7 +237,8 @@ async function openDetail(monitor) {
   state.selectedMonitor = monitor;
   renderDetail(monitor);
   elements.shell.classList.add("detail-open");
-  elements.detailScreen.setAttribute("aria-hidden", "false");
+  elements.backButton.focus();
+  elements.detailContent.setAttribute("aria-hidden", "false");
   await loadHistory(monitor._id);
 }
 
@@ -245,6 +247,7 @@ function closeDetail() {
   elements.shell.classList.remove("detail-open");
   elements.detailScreen.setAttribute("aria-hidden", "true");
   elements.historyList.innerHTML = "";
+  elements.watchButton.focus();
 }
 
 function renderDetail(monitor) {
@@ -260,30 +263,121 @@ function renderDetail(monitor) {
   elements.detailLastChecked.textContent = monitor.lastCheckedAt ? formatCompactTime(monitor.lastCheckedAt) : "Never";
 }
 
-async function loadHistory(monitorId) {
-  elements.historyLoading.classList.remove("hidden");
-  elements.historyEmpty.classList.add("hidden");
-  elements.historyList.innerHTML = "";
+function renderHistoryEvent(event) {
+    const removedText =
+        event.removedText?.trim() || "";
 
-  try {
-    const history = await getMonitorHistory(monitorId);
-    elements.historyTotal.textContent = `${history.length} ${history.length === 1 ? "event" : "events"}`;
-    elements.historyEmpty.classList.toggle("hidden", history.length > 0);
-    elements.historyList.innerHTML = history.map(event => `
-      <article class="history-item">
-        <div class="history-marker"><span class="history-dot"></span></div>
-        <div>
-          <p class="history-date">${escapeHtml(formatHistoryDate(event.checkedAt || event.createdAt))}</p>
-          <p class="history-summary">${escapeHtml(event.summary || "Page content changed")}</p>
-        </div>
-      </article>`).join("");
-  } catch (error) {
-    console.error(error);
-    elements.historyEmpty.textContent = "Unable to load change history.";
-    elements.historyEmpty.classList.remove("hidden");
-  } finally {
-    elements.historyLoading.classList.add("hidden");
-  }
+    const addedText =
+        event.addedText?.trim() || "";
+
+    const removedSection = removedText
+        ? `
+            <div class="history-preview history-preview--removed">
+                <span class="history-preview__label">
+                    Removed
+                </span>
+
+                <p>${escapeHtml(removedText)}</p>
+            </div>
+        `
+        : "";
+
+    const addedSection = addedText
+        ? `
+            <div class="history-preview history-preview--added">
+                <span class="history-preview__label">
+                    Added
+                </span>
+
+                <p>${escapeHtml(addedText)}</p>
+            </div>
+        `
+        : "";
+
+    const preview =
+        removedSection || addedSection
+            ? `
+                <div class="history-previews">
+                    ${removedSection}
+                    ${addedSection}
+                </div>
+            `
+            : "";
+
+    return `
+        <article class="history-item">
+            <div class="history-marker">
+                <span class="history-dot"></span>
+            </div>
+
+            <div class="history-item__content">
+                <p class="history-date">
+                    ${escapeHtml(
+                        formatHistoryDate(
+                            event.checkedAt ||
+                                event.createdAt
+                        )
+                    )}
+                </p>
+
+                <p class="history-summary">
+                    ${escapeHtml(
+                        event.summary ||
+                            "Page content changed"
+                    )}
+                </p>
+
+                ${preview}
+            </div>
+        </article>
+    `;
+}
+
+async function loadHistory(monitorId) {
+    elements.historyLoading.classList.remove(
+        "hidden"
+    );
+
+    elements.historyEmpty.classList.add(
+        "hidden"
+    );
+
+    elements.historyList.innerHTML = "";
+
+    try {
+        const history =
+            await getMonitorHistory(monitorId);
+
+        elements.historyTotal.textContent =
+            `${history.length} ${
+                history.length === 1
+                    ? "event"
+                    : "events"
+            }`;
+
+        elements.historyEmpty.classList.toggle(
+            "hidden",
+            history.length > 0
+        );
+
+        elements.historyList.innerHTML =
+            history
+                .map(renderHistoryEvent)
+                .join("");
+    } catch (error) {
+        console.error(error);
+
+        elements.historyEmpty.textContent =
+            "Unable to load change history.";
+
+        elements.historyEmpty.classList.remove(
+            "hidden"
+        );
+    } finally {
+        elements.historyLoading.classList.add(
+            "hidden"
+        );
+    }
 }
 
 async function handleCheckNow() {

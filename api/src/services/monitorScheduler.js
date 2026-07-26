@@ -4,16 +4,13 @@ import { Monitor } from "../models/monitor.js";
 import { checkMonitor } from "./monitorChecker.js";
 
 export function startMonitorScheduler() {
-
     console.log("Monitor scheduler started");
 
     const schedulerInterval =
-        Number(process.env.CHECK_INTERVAL_MS) || 60000;
+        Number(process.env.CHECK_INTERVAL_MS) || 60_000;
 
     setInterval(async () => {
-
         try {
-
             const now = new Date();
 
             const monitors = await Monitor.find({
@@ -21,33 +18,35 @@ export function startMonitorScheduler() {
             }).select("+lastContent");
 
             for (const monitor of monitors) {
-
-                // Never checked before
-                if (!monitor.lastChecked) {
-                    try {
+                try {
+                    if (!monitor.lastCheckedAt) {
                         await checkMonitor(monitor);
-                    } catch (err) {
-                        console.error(err);
+                        continue;
                     }
-                    continue;
+
+                    const minutesSinceLastCheck =
+                        (now.getTime() -
+                            monitor.lastCheckedAt.getTime()) /
+                        60_000;
+
+                    if (
+                        minutesSinceLastCheck >=
+                        monitor.checkInterval
+                    ) {
+                        await checkMonitor(monitor);
+                    }
+                } catch (error) {
+                    console.error(
+                        `Monitor check failed for ${monitor._id}:`,
+                        error
+                    );
                 }
-
-                const minutesSinceLastCheck =
-                    (now - monitor.lastChecked) / 60000;
-
-                if (minutesSinceLastCheck >= monitor.checkInterval) {
-                    await checkMonitor(monitor);
-                }
-
             }
-
         } catch (error) {
             console.error(
                 "Monitor scheduler error:",
                 error
             );
         }
-
     }, schedulerInterval);
-
 }

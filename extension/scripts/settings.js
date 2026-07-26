@@ -4,7 +4,7 @@ const DEFAULT_SETTINGS = Object.freeze({
     autoDetectCurrentTab: true
 });
 
-import { API_BASE_URL, getMonitors } from "../services/api.js";
+import { API_BASE_URL } from "../config.js";
 
 const elements = {
     notificationsEnabled:
