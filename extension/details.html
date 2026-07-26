@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monitor details — Smart Page Monitor</title>
+  <link rel="stylesheet" href="../styles/details.css">
+</head>
+<body>
+  <main class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="details.html" aria-label="Smart Page Monitor">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span>Smart Page Monitor</span>
+      </a>
+
+      <button id="open-settings-button" class="button button--quiet" type="button">
+        Settings
+      </button>
+    </header>
+
+    <section id="loading-state" class="state-card">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Loading monitor details…</p>
+    </section>
+
+    <section id="error-state" class="state-card hidden" role="alert">
+      <h1>Unable to open this monitor</h1>
+      <p id="error-message">The monitor could not be loaded.</p>
+      <button id="close-error-button" class="button" type="button">Close tab</button>
+    </section>
+
+    <section id="details-view" class="hidden">
+      <div class="hero-card">
+        <div class="hero-heading">
+          <div id="site-icon" class="site-icon" aria-hidden="true">W</div>
+
+          <div class="hero-copy">
+            <p id="domain" class="eyebrow">Website</p>
+            <h1 id="monitor-title">Monitor</h1>
+            <p id="monitor-url" class="monitor-url"></p>
+          </div>
+
+          <span id="status-pill" class="status-pill">Pending</span>
+        </div>
+
+        <div class="actions">
+          <button id="open-page-button" class="button button--primary" type="button">
+            Open website
+          </button>
+          <button id="check-now-button" class="button" type="button">
+            Check now
+          </button>
+          <button id="delete-button" class="button button--danger" type="button">
+            Delete monitor
+          </button>
+        </div>
+      </div>
+
+      <section class="summary-grid" aria-label="Monitor summary">
+        <article class="summary-card">
+          <span>Changes detected</span>
+          <strong id="change-count">0</strong>
+        </article>
+
+        <article class="summary-card">
+          <span>Last changed</span>
+          <strong id="last-change">Never</strong>
+        </article>
+
+        <article class="summary-card">
+          <span>Last checked</span>
+          <strong id="last-checked">Never</strong>
+        </article>
+
+        <article class="summary-card">
+          <span>Check interval</span>
+          <strong id="check-interval">—</strong>
+        </article>
+      </section>
+
+      <section class="history-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Change history</p>
+            <h2>What changed</h2>
+          </div>
+          <span id="history-total" class="history-total">0 events</span>
+        </div>
+
+        <div id="history-loading" class="history-state">
+          Loading history…
+        </div>
+
+        <div id="history-empty" class="history-state hidden">
+          No changes have been recorded yet.
+        </div>
+
+        <div id="history-list" class="history-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="../scripts/details.js"></script>
+</body>
+</html>

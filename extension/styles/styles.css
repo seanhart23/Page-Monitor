@@ -503,7 +503,7 @@ svg {
   top: 0;
   display: grid;
   grid-template-columns: 42px 1fr 42px;
-  height: 72px;
+  height: 40px;
   padding: 0 14px;
   border-bottom: 1px solid #edf1f6;
   align-items: center;

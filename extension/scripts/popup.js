@@ -15,6 +15,8 @@ const state = {
   filter: "all"
 };
 
+const MAX_MONITORS = 25;
+
 const elements = {
   shell: document.getElementById("app-shell"),
   title: document.getElementById("page-title"),
@@ -59,11 +61,11 @@ async function initialize() {
   const {
     autoDetectCurrentTab = true
   } = await chrome.storage.sync.get({
-      autoDetectCurrentTab: true
+    autoDetectCurrentTab: true
   });
 
   if (autoDetectCurrentTab) {
-      await loadCurrentTab();
+    await loadCurrentTab();
   }
   await loadMonitors();
 }
@@ -96,7 +98,8 @@ async function loadCurrentTab() {
 
   if (!tab?.url) {
     elements.title.textContent = "Current page unavailable";
-    elements.watchButton.disabled = true;
+    elements.url.textContent = "";
+    updateWatchButton();
     return;
   }
 
@@ -104,10 +107,11 @@ async function loadCurrentTab() {
   elements.url.textContent = tab.url;
 
   const result = validateUrl(tab.url);
-  if (!result.valid) {
-    elements.status.textContent = result.reason;
-    elements.watchButton.disabled = true;
-  }
+
+  elements.status.textContent =
+    result.valid ? "" : result.reason;
+
+  updateWatchButton();
 }
 
 async function loadMonitors() {
@@ -118,6 +122,7 @@ async function loadMonitors() {
   try {
     state.monitors = await getMonitors();
     updateSummary();
+    updateWatchButton();
     renderMonitorList();
   } catch (error) {
     console.error(error);
@@ -149,7 +154,6 @@ function renderMonitorList() {
       || (state.filter === "active" && monitor.enabled !== false)
       || (state.filter === "failed" && monitor.lastStatus === "failed");
     return matchesSearch && matchesFilter;
-    updateWatchButton(monitors);
   });
 
   elements.empty.classList.toggle("hidden", state.monitors.length !== 0);
@@ -243,30 +247,82 @@ async function handleWatchPage() {
     );
 
   } finally {
-    elements.watchButton.disabled = false;
+    updateWatchButton();
   }
 }
 
 async function openDetail(monitor) {
+  if (!monitor?._id) {
+    console.error(
+      "Cannot open monitor details: invalid monitor.",
+      monitor
+    );
+    return;
+  }
+
   state.selectedMonitor = monitor;
   renderDetail(monitor);
+
   elements.shell.classList.add("detail-open");
-  elements.backButton.focus();
-  elements.detailContent.setAttribute("aria-hidden", "false");
+  elements.detailScreen.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+  elements.detailContent.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+  console.log({
+    detailContentScrollTop:
+      elements.detailContent.scrollTop,
+
+    detailScreenScrollTop:
+      elements.detailScreen.scrollTop,
+
+    shellScrollTop:
+      elements.shell.scrollTop,
+
+    documentScrollTop:
+      document.documentElement.scrollTop
+  });
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      resetDetailScroll();
+
+      elements.backButton.focus({
+        preventScroll: true
+      });
+    });
+  });
+
   await loadHistory(monitor._id);
+}
+
+function resetDetailScroll() {
+  elements.detailContent.scrollTop = 0;
+  elements.detailScreen.scrollTop = 0;
+  elements.shell.scrollTop = 0;
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
 }
 
 function closeDetail() {
   state.selectedMonitor = null;
   elements.shell.classList.remove("detail-open");
   elements.detailScreen.setAttribute("aria-hidden", "true");
+  elements.detailContent.setAttribute("aria-hidden", "true");
   elements.historyList.innerHTML = "";
-  elements.watchButton.focus();
+
+  requestAnimationFrame(() => {
+    elements.watchButton.focus();
+  });
 }
 
 function renderDetail(monitor) {
   const status = getMonitorStatus(monitor);
-  elements.detailHeaderTitle.textContent = monitor.title || "Monitor";
+  // elements.detailHeaderTitle.textContent = monitor.title || "Monitor";
   elements.detailTitle.textContent = monitor.title || "Untitled page";
   elements.detailDomain.textContent = getDomain(monitor.url);
   elements.detailSiteIcon.textContent = getInitial(monitor);
@@ -278,14 +334,14 @@ function renderDetail(monitor) {
 }
 
 function renderHistoryEvent(event) {
-    const removedText =
-        event.removedText?.trim() || "";
+  const removedText =
+    event.removedText?.trim() || "";
 
-    const addedText =
-        event.addedText?.trim() || "";
+  const addedText =
+    event.addedText?.trim() || "";
 
-    const removedSection = removedText
-        ? `
+  const removedSection = removedText
+    ? `
             <div class="history-preview history-preview--removed">
                 <span class="history-preview__label">
                     Removed
@@ -294,10 +350,10 @@ function renderHistoryEvent(event) {
                 <p>${escapeHtml(removedText)}</p>
             </div>
         `
-        : "";
+    : "";
 
-    const addedSection = addedText
-        ? `
+  const addedSection = addedText
+    ? `
             <div class="history-preview history-preview--added">
                 <span class="history-preview__label">
                     Added
@@ -306,19 +362,19 @@ function renderHistoryEvent(event) {
                 <p>${escapeHtml(addedText)}</p>
             </div>
         `
-        : "";
+    : "";
 
-    const preview =
-        removedSection || addedSection
-            ? `
+  const preview =
+    removedSection || addedSection
+      ? `
                 <div class="history-previews">
                     ${removedSection}
                     ${addedSection}
                 </div>
             `
-            : "";
+      : "";
 
-    return `
+  return `
         <article class="history-item">
             <div class="history-marker">
                 <span class="history-dot"></span>
@@ -327,18 +383,18 @@ function renderHistoryEvent(event) {
             <div class="history-item__content">
                 <p class="history-date">
                     ${escapeHtml(
-                        formatHistoryDate(
-                            event.checkedAt ||
-                                event.createdAt
-                        )
-                    )}
+    formatHistoryDate(
+      event.checkedAt ||
+      event.createdAt
+    )
+  )}
                 </p>
 
                 <p class="history-summary">
                     ${escapeHtml(
-                        event.summary ||
-                            "Page content changed"
-                    )}
+    event.summary ||
+    "Page content changed"
+  )}
                 </p>
 
                 ${preview}
@@ -348,50 +404,49 @@ function renderHistoryEvent(event) {
 }
 
 async function loadHistory(monitorId) {
-    elements.historyLoading.classList.remove(
-        "hidden"
+  elements.historyLoading.classList.remove(
+    "hidden"
+  );
+
+  elements.historyEmpty.classList.add(
+    "hidden"
+  );
+
+  elements.historyList.innerHTML = "";
+
+  try {
+    const history =
+      await getMonitorHistory(monitorId);
+
+    elements.historyTotal.textContent =
+      `${history.length} ${history.length === 1
+        ? "event"
+        : "events"
+      }`;
+
+    elements.historyEmpty.classList.toggle(
+      "hidden",
+      history.length > 0
     );
 
-    elements.historyEmpty.classList.add(
-        "hidden"
+    elements.historyList.innerHTML =
+      history
+        .map(renderHistoryEvent)
+        .join("");
+  } catch (error) {
+    console.error(error);
+
+    elements.historyEmpty.textContent =
+      "Unable to load change history.";
+
+    elements.historyEmpty.classList.remove(
+      "hidden"
     );
-
-    elements.historyList.innerHTML = "";
-
-    try {
-        const history =
-            await getMonitorHistory(monitorId);
-
-        elements.historyTotal.textContent =
-            `${history.length} ${
-                history.length === 1
-                    ? "event"
-                    : "events"
-            }`;
-
-        elements.historyEmpty.classList.toggle(
-            "hidden",
-            history.length > 0
-        );
-
-        elements.historyList.innerHTML =
-            history
-                .map(renderHistoryEvent)
-                .join("");
-    } catch (error) {
-        console.error(error);
-
-        elements.historyEmpty.textContent =
-            "Unable to load change history.";
-
-        elements.historyEmpty.classList.remove(
-            "hidden"
-        );
-    } finally {
-        elements.historyLoading.classList.add(
-            "hidden"
-        );
-    }
+  } finally {
+    elements.historyLoading.classList.add(
+      "hidden"
+    );
+  }
 }
 
 async function handleCheckNow() {
@@ -504,36 +559,60 @@ function showToast(message, isError = false) {
 const openSettingsButton = document.querySelector("#openSettingsButton");
 
 openSettingsButton?.addEventListener(
-    "click",
-    async () => {
-        await chrome.runtime.openOptionsPage();
-    }
+  "click",
+  async () => {
+    await chrome.runtime.openOptionsPage();
+  }
 );
 
-const MAX_MONITORS = 25;
+function updateWatchButton() {
+  const limitReached =
+    state.monitors.length >= MAX_MONITORS;
 
-function updateWatchButton(monitors) {
-    const limitReached =
-        monitors.length >= MAX_MONITORS;
+  const currentUrlValidation =
+    state.tab?.url
+      ? validateUrl(state.tab.url)
+      : {
+          valid: false,
+          reason: "Current page unavailable"
+        };
 
-    elements.watchButton.disabled =
-        limitReached;
+  const buttonText =
+    elements.watchButton.querySelector(
+      "span:last-child"
+    );
 
-    const buttonText =
-        elements.watchButton.querySelector(
-            "span:last-child"
-        );
+  if (limitReached) {
+    elements.watchButton.disabled = true;
+    elements.watchButton.title =
+      `Maximum of ${MAX_MONITORS} monitors reached`;
 
-    if (limitReached) {
-        elements.watchButton.title =
-            `Maximum of ${MAX_MONITORS} monitors reached`;
-
-        buttonText.textContent =
-            "Monitor limit reached";
-    } else {
-        elements.watchButton.title = "";
-
-        buttonText.textContent =
-            "Monitor this page";
+    if (buttonText) {
+      buttonText.textContent =
+        "Monitor limit reached";
     }
+
+    return;
+  }
+
+  if (!currentUrlValidation.valid) {
+    elements.watchButton.disabled = true;
+    elements.watchButton.title =
+      currentUrlValidation.reason || "";
+
+    if (buttonText) {
+      buttonText.textContent =
+        "Monitor this page";
+    }
+
+    return;
+  }
+
+  elements.watchButton.disabled = false;
+  elements.watchButton.title = "";
+
+  if (buttonText) {
+    buttonText.textContent =
+      "Monitor this page";
+  }
 }

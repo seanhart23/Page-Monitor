@@ -1,3 +1,5 @@
+import { getMonitors } from "../services/api.js";
+
 const DEFAULT_SETTINGS = Object.freeze({
     notificationsEnabled: true,
     defaultCheckInterval: 30,
