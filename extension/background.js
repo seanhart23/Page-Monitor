@@ -1,13 +1,9 @@
+import { API_BASE_URL, NOTIFICATION_ALARM, NOTIFICATION_DATA_KEY, PREVIEW_MAX_LENGTH } from "../config.js";
+
 import {
-    getPendingNotifications,
-    acknowledgeNotification
+  getPendingNotifications,
+  acknowledgeNotification
 } from "./services/api.js";
-
-const NOTIFICATION_ALARM =
-    "check-pending-notifications";
-
-    const NOTIFICATION_DATA_KEY = "pageMonitorNotificationData";
-const PREVIEW_MAX_LENGTH = 110;
 
 function truncateText(value, maxLength = PREVIEW_MAX_LENGTH) {
   const text = String(value || "")
@@ -30,35 +26,35 @@ function getMonitorDomain(monitor) {
 }
 
 function createNotificationMessage(change) {
-    const addedText = change?.addedText?.trim() || "";
+  const addedText = change?.addedText?.trim() || "";
 
-    const removedText = change?.removedText?.trim() || "";
+  const removedText = change?.removedText?.trim() || "";
 
-    if (addedText && removedText) {
-        return truncateNotificationText(
-            `Changed to: ${addedText}`,
-            180
-        );
-    }
-
-    if (addedText) {
-        return truncateNotificationText(
-            `Added: ${addedText}`,
-            180
-        );
-    }
-
-    if (removedText) {
-        return truncateNotificationText(
-            `Removed: ${removedText}`,
-            180
-        );
-    }
-
-    return (
-        change?.summary ||
-        "The page content has changed."
+  if (addedText && removedText) {
+    return truncateNotificationText(
+      `Changed to: ${addedText}`,
+      180
     );
+  }
+
+  if (addedText) {
+    return truncateNotificationText(
+      `Added: ${addedText}`,
+      180
+    );
+  }
+
+  if (removedText) {
+    return truncateNotificationText(
+      `Removed: ${removedText}`,
+      180
+    );
+  }
+
+  return (
+    change?.summary ||
+    "The page content has changed."
+  );
 }
 
 async function saveNotificationData(
@@ -70,8 +66,7 @@ async function saveNotificationData(
     NOTIFICATION_DATA_KEY
   );
 
-  const notificationData =
-    stored[NOTIFICATION_DATA_KEY] || {};
+  const notificationData = stored[NOTIFICATION_DATA_KEY] || {};
 
   notificationData[notificationId] = {
     monitorId: monitor._id,
@@ -101,8 +96,7 @@ async function removeNotificationData(notificationId) {
     NOTIFICATION_DATA_KEY
   );
 
-  const notificationData =
-    stored[NOTIFICATION_DATA_KEY] || {};
+  const notificationData = stored[NOTIFICATION_DATA_KEY] || {};
 
   delete notificationData[notificationId];
 
@@ -152,42 +146,42 @@ async function showChangeNotification(monitor, change) {
 
 chrome.runtime.onInstalled.addListener(() => {
 
-    chrome.alarms.create(NOTIFICATION_ALARM, {
-        periodInMinutes: 1
-    });
+  chrome.alarms.create(NOTIFICATION_ALARM, {
+    periodInMinutes: 1
+  });
 });
 
 chrome.runtime.onStartup.addListener(() => {
-    chrome.alarms.create(NOTIFICATION_ALARM, {
-        periodInMinutes: 1
-    });
+  chrome.alarms.create(NOTIFICATION_ALARM, {
+    periodInMinutes: 1
+  });
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-    
-    if (alarm.name !== NOTIFICATION_ALARM) {
-        return;
-    }
 
-    processPendingNotifications();
+  if (alarm.name !== NOTIFICATION_ALARM) {
+    return;
+  }
+
+  processPendingNotifications();
 });
 
 function truncateNotificationText(
-    text,
-    maxLength = 180
+  text,
+  maxLength = 180
 ) {
-    const safeText = String(text)
-        .replace(/\s+/g, " ")
-        .trim();
+  const safeText = String(text)
+    .replace(/\s+/g, " ")
+    .trim();
 
-    if (safeText.length <= maxLength) {
-        return safeText;
-    }
+  if (safeText.length <= maxLength) {
+    return safeText;
+  }
 
-    return `${safeText.slice(
-        0,
-        maxLength - 1
-    )}…`;
+  return `${safeText.slice(
+    0,
+    maxLength - 1
+  )}…`;
 }
 
 async function processPendingNotifications() {
@@ -213,8 +207,7 @@ async function processPendingNotifications() {
       return;
     }
 
-    const notifications =
-      await getPendingNotifications();
+    const notifications = await getPendingNotifications();
 
     if (!Array.isArray(notifications)) {
       console.error(
@@ -268,8 +261,7 @@ async function processPendingNotifications() {
 
 chrome.notifications.onClicked.addListener(
   async notificationId => {
-    const data =
-      await getNotificationData(notificationId);
+    const data = await getNotificationData(notificationId);
 
     if (!data?.url) {
       return;

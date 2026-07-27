@@ -1,6 +1,4 @@
-import { API_BASE_URL } from "../config.js";
-
-const STORAGE_KEY = "installationCredentials";
+import { API_BASE_URL, STORAGE_KEY } from "../config.js";
 
 export async function getInstallationCredentials() {
     const result = await chrome.storage.local.get(
@@ -11,8 +9,7 @@ export async function getInstallationCredentials() {
 }
 
 export async function ensureInstallationCredentials() {
-    const existingCredentials =
-        await getInstallationCredentials();
+    const existingCredentials = await getInstallationCredentials();
 
     if (existingCredentials) {
         return existingCredentials;

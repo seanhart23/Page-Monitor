@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Smart Page Monitor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Smart Page Monitor watches webpages you choose and notifies you when their content changes.",
   "permissions": [
     "storage",

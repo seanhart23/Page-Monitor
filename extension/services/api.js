@@ -31,8 +31,7 @@ import {
 } from "./installation.js";
 
 async function apiFetch(path, options = {}) {
-    const credentials =
-        await ensureInstallationCredentials();
+    const credentials = await ensureInstallationCredentials();
 
     const response = await fetch(
         `${API_BASE_URL}${path}`,
@@ -49,8 +48,7 @@ async function apiFetch(path, options = {}) {
         }
     );
 
-    const contentType =
-        response.headers.get("content-type") || "";
+    const contentType = response.headers.get("content-type") || "";
 
     const responseText = await response.text();
 

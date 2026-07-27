@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Smart Page Monitor Settings</title>
 
-    <link
-        rel="stylesheet"
-        href="./styles/settings.css"
-    >
+    <link rel="stylesheet" href="./styles/settings.css">
 </head>
 
 <body>
@@ -26,19 +21,10 @@
 
                 <div class="brand-icon" aria-hidden="true">
 
-                    <svg
-                        viewBox="0 0 24 24"
-                        role="img"
-                    >
-                        <path
-                            d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"
-                        />
+                    <svg viewBox="0 0 24 24" role="img">
+                        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
 
-                        <circle
-                            cx="12"
-                            cy="12"
-                            r="3"
-                        />
+                        <circle cx="12" cy="12" r="3" />
                     </svg>
 
                 </div>
@@ -84,10 +70,7 @@
 
                     <label class="toggle">
 
-                        <input
-                            id="notificationsEnabled"
-                            type="checkbox"
-                        >
+                        <input id="notificationsEnabled" type="checkbox">
 
                         <span class="toggle-slider"></span>
 
@@ -95,19 +78,11 @@
 
                 </div>
 
-                <button
-                    id="testNotificationButton"
-                    class="secondary-button"
-                    type="button"
-                >
+                <button id="testNotificationButton" class="secondary-button" type="button">
                     Send test notification
                 </button>
 
-                <p
-                    id="notificationStatus"
-                    class="inline-status"
-                    aria-live="polite"
-                ></p>
+                <p id="notificationStatus" class="inline-status" aria-live="polite"></p>
 
             </article>
 
@@ -169,10 +144,7 @@
 
                     <label class="toggle">
 
-                        <input
-                            id="autoDetectCurrentTab"
-                            type="checkbox"
-                        >
+                        <input id="autoDetectCurrentTab" type="checkbox">
 
                         <span class="toggle-slider"></span>
 
@@ -201,10 +173,7 @@
                 <div class="stats-grid">
 
                     <div class="stat">
-                        <span
-                            id="totalMonitors"
-                            class="stat-value"
-                        >
+                        <span id="totalMonitors" class="stat-value">
                             —
                         </span>
 
@@ -214,10 +183,7 @@
                     </div>
 
                     <div class="stat">
-                        <span
-                            id="activeMonitors"
-                            class="stat-value"
-                        >
+                        <span id="activeMonitors" class="stat-value">
                             —
                         </span>
 
@@ -227,10 +193,7 @@
                     </div>
 
                     <div class="stat">
-                        <span
-                            id="disabledMonitors"
-                            class="stat-value"
-                        >
+                        <span id="disabledMonitors" class="stat-value">
                             —
                         </span>
 
@@ -240,10 +203,7 @@
                     </div>
 
                     <div class="stat">
-                        <span
-                            id="totalChanges"
-                            class="stat-value"
-                        >
+                        <span id="totalChanges" class="stat-value">
                             —
                         </span>
 
@@ -254,11 +214,7 @@
 
                 </div>
 
-                <p
-                    id="statisticsStatus"
-                    class="inline-status"
-                    aria-live="polite"
-                ></p>
+                <p id="statisticsStatus" class="inline-status" aria-live="polite"></p>
 
             </article>
 
@@ -282,10 +238,7 @@
 
                     <div class="connection-status">
 
-                        <span
-                            id="connectionIndicator"
-                            class="status-indicator status-checking"
-                        ></span>
+                        <span id="connectionIndicator" class="status-indicator status-checking"></span>
 
                         <div>
                             <strong id="connectionLabel">
@@ -299,13 +252,8 @@
 
                     </div>
 
-                    <button
-                        id="checkConnectionButton"
-                        class="icon-button"
-                        type="button"
-                        aria-label="Check connection again"
-                        title="Check connection again"
-                    >
+                    <button id="checkConnectionButton" class="icon-button" type="button"
+                        aria-label="Check connection again" title="Check connection again">
                         ↻
                     </button>
 
@@ -345,21 +293,13 @@
 
                 <div class="about-links">
 
-                    <a
-                        id="privacyLink"
-                        href="https://smart-page-monitor.onrender.com/privacy.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
+                    <a id="privacyLink" href="https://smart-page-monitor.onrender.com/privacy.html" target="_blank"
+                        rel="noopener noreferrer">
                         Privacy policy
                     </a>
 
-                    <a
-                        id="supportLink"
-                        href="https://smart-page-monitor.onrender.com/support.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
+                    <a id="supportLink" href="https://smart-page-monitor.onrender.com/support.html" target="_blank"
+                        rel="noopener noreferrer">
                         Support
                     </a>
 
@@ -370,29 +310,16 @@
         </section>
 
         <footer class="settings-footer">
-
-            <div
-                id="saveMessage"
-                class="save-message"
-                aria-live="polite"
-            ></div>
-
-            <button
-                id="saveSettingsButton"
-                class="primary-button"
-                type="button"
-            >
+            <div id="saveMessage" class="save-message" aria-live="polite"></div>
+            <button id="saveSettingsButton" class="primary-button" type="button">
                 Save settings
             </button>
-
         </footer>
 
     </main>
 
-    <script
-        type="module"
-        src="./scripts/settings.js"
-    ></script>
+    <script type="module" src="./scripts/settings.js"></script>
 
 </body>
+
 </html>
