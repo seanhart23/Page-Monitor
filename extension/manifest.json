@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Smart Page Monitor",
   "version": "1.0.1",
-  "description": "Smart Page Monitor watches webpages you choose and notifies you when their content changes.",
+  "description": "Monitor any webpage and get notified the moment content changes—no more refreshing tabs or checking manually.",
   "permissions": [
     "storage",
     "activeTab",
