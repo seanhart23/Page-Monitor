@@ -10,7 +10,7 @@
     "alarms"
   ],
   "host_permissions": [
-    "https://smart-page-monitor.onrender.com/*"
+    "https://smart-page-monitor-api.onrender.com/*"
   ],
   "options_ui": {
     "page": "settings.html",

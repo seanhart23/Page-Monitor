@@ -1,9 +1,7 @@
-import dotenv from "dotenv";
-import { normalizeUrl } from "../utils/normalizeUrl.js";
-import { checkMonitor } from "../services/monitorChecker.js";
+import { Monitor } from "../models/monitor.js";
 import { ChangeEvent } from "../models/changeEvent.js";
-
-dotenv.config();import { Monitor } from "../models/monitor.js";
+import { checkMonitor } from "../services/monitorChecker.js";
+import { normalizeUrl } from "../utils/normalizeUrl.js";
 
 const DEFAULT_MAX_MONITORS = 25;
 
@@ -31,107 +29,113 @@ export async function getMonitors(request, response) {
 }
 
 export async function createMonitor(request, response) {
- try {
-  const { title, url, icon, checkInterval } = request.body;
-
-  const installationId =
-    request.installation.installationId;
-
-  const maxMonitors =
-    Number(
-      process.env.MAX_MONITORS_PER_INSTALLATION
-    ) || 25;
-
-  if (!url) {
-    return response.status(400).json({
-      success: false,
-      message: "URL is required"
-    });
-  }
-
-  let normalizedUrl;
-
   try {
-    normalizedUrl = normalizeUrl(url);
-  } catch {
-    return response.status(400).json({
-      success: false,
-      message: "A valid URL is required"
-    });
-  }
+    const { title, url, icon, checkInterval } = request.body;
 
-  const existingMonitor = await Monitor.findOne({
-    normalizedUrl,
-    installationId
-  });
+    const installationId =
+      request.installation.installationId;
 
-  if (existingMonitor) {
-    return response.status(409).json({
-      success: false,
-      code: "MONITOR_ALREADY_EXISTS",
-      message:
-        "This page is already being monitored"
-    });
-  }
+    const maxMonitors =
+      Number(
+        process.env.MAX_MONITORS_PER_INSTALLATION
+      ) || process.env.DEFAULT_MAX_MONITORS;
 
-  const monitorCount =
-    await Monitor.countDocuments({
+    if (!url) {
+      return response.status(400).json({
+        success: false,
+        message: "URL is required"
+      });
+    }
+
+    let normalizedUrl;
+
+    try {
+      normalizedUrl = normalizeUrl(url);
+    } catch {
+      return response.status(400).json({
+        success: false,
+        message: "A valid URL is required"
+      });
+    }
+
+    const existingMonitor = await Monitor.findOne({
+      normalizedUrl,
       installationId
     });
 
-  if (monitorCount >= maxMonitors) {
-    return response.status(403).json({
+    if (existingMonitor) {
+      return response.status(409).json({
+        success: false,
+        code: "MONITOR_ALREADY_EXISTS",
+        message:
+          "This page is already being monitored"
+      });
+    }
+
+    const monitorCount =
+      await Monitor.countDocuments({
+        installationId
+      });
+
+    if (monitorCount >= maxMonitors) {
+      return response.status(403).json({
+        success: false,
+        code: "MONITOR_LIMIT_REACHED",
+        message:
+          `You have reached the limit of ${maxMonitors} monitored pages.`,
+        limit: maxMonitors,
+        currentCount: monitorCount
+      });
+    }
+
+    const monitor = await Monitor.create({
+      title: title?.trim() || "Untitled page",
+      url,
+      normalizedUrl,
+      icon,
+      checkInterval:
+        Number(checkInterval) || 30,
+      installationId
+    });
+
+    return response.status(201).json({
+      success: true,
+      data: monitor,
+      usage: {
+        currentCount: monitorCount + 1,
+        limit: maxMonitors
+      }
+    });
+  } catch (error) {
+    console.error(
+      "Unable to create monitor:",
+      error
+    );
+
+    return response.status(500).json({
       success: false,
-      code: "MONITOR_LIMIT_REACHED",
-      message:
-        `You have reached the limit of ${maxMonitors} monitored pages.`,
-      limit: maxMonitors,
-      currentCount: monitorCount
+      message: "Unable to create monitor"
     });
   }
-
-  const monitor = await Monitor.create({
-    title: title?.trim() || "Untitled page",
-    url,
-    normalizedUrl,
-    icon,
-    checkInterval:
-      Number(checkInterval) || 30,
-    installationId
-  });
-
-  return response.status(201).json({
-    success: true,
-    data: monitor,
-    usage: {
-      currentCount: monitorCount + 1,
-      limit: maxMonitors
-    }
-  });
-} catch (error) {
-  console.error(
-    "Unable to create monitor:",
-    error
-  );
-
-  return response.status(500).json({
-    success: false,
-    message: "Unable to create monitor"
-  });
-}
 }
 
 export async function deleteMonitor(request, response) {
   try {
     const monitor = await Monitor.findOneAndDelete({
       _id: request.params.id,
-      installationId:
-        request.installation.installationId
+      installationId: request.installation.installationId
     });
 
+    if (!monitor) {
+      return response.status(404).json({
+        success: false,
+        message: "Monitor not found"
+      });
+    }
+
     await ChangeEvent.deleteMany({
-        monitorId: monitor._id,
-        installationId: request.installation.installationId
+      monitorId: monitor._id,
+      installationId: request.installation.installationId
     });
 
     if (!monitor) {
@@ -156,34 +160,34 @@ export async function deleteMonitor(request, response) {
 }
 
 export async function checkMonitorNow(request, response) {
-    try {
-        const monitor = await Monitor.findOne({
-            _id: request.params.id,
-            installationId:
-                request.installation.installationId
-        }).select("+lastContent");
+  try {
+    const monitor = await Monitor.findOne({
+      _id: request.params.id,
+      installationId:
+        request.installation.installationId
+    }).select("+lastContent");
 
-        if (!monitor) {
-            return response.status(404).json({
-                success: false,
-                message: "Monitor not found"
-            });
-        }
-
-        const result = await checkMonitor(monitor);
-
-        return response.json({
-            success: result.success,
-            changed: result.changed,
-            data: monitor,
-            error: result.error
-        });
-    } catch (error) {
-        console.error("Unable to check monitor:", error);
-
-        return response.status(500).json({
-            success: false,
-            message: "Unable to check monitor"
-        });
+    if (!monitor) {
+      return response.status(404).json({
+        success: false,
+        message: "Monitor not found"
+      });
     }
+
+    const result = await checkMonitor(monitor);
+
+    return response.json({
+      success: result.success,
+      changed: result.changed,
+      data: monitor,
+      error: result.error
+    });
+  } catch (error) {
+    console.error("Unable to check monitor:", error);
+
+    return response.status(500).json({
+      success: false,
+      message: "Unable to check monitor"
+    });
+  }
 }

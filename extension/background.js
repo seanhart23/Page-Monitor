@@ -1,4 +1,8 @@
-import { API_BASE_URL, NOTIFICATION_ALARM, NOTIFICATION_DATA_KEY, PREVIEW_MAX_LENGTH } from "../config.js";
+import {
+  NOTIFICATION_ALARM,
+  NOTIFICATION_DATA_KEY,
+  PREVIEW_MAX_LENGTH
+} from "./config.js";
 
 import {
   getPendingNotifications,
