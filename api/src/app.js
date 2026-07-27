@@ -15,7 +15,8 @@ app.use(
             /^chrome-extension:\/\//
         ]
     })
-);app.use(express.json());
+);
+app.use(express.json());
 app.use("/api/installations", installationRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api", changeHistoryRoutes);

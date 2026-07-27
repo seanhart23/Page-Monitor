@@ -1,3 +1,4 @@
+import { MAX_MONITORS } from "../config.js";
 import {
   createMonitor,
   getMonitors,
@@ -14,8 +15,6 @@ const state = {
   search: "",
   filter: "all"
 };
-
-const MAX_MONITORS = 25;
 
 const elements = {
   shell: document.getElementById("app-shell"),
@@ -264,28 +263,8 @@ async function openDetail(monitor) {
   renderDetail(monitor);
 
   elements.shell.classList.add("detail-open");
-  elements.detailScreen.setAttribute(
-    "aria-hidden",
-    "false"
-  );
-  elements.detailContent.setAttribute(
-    "aria-hidden",
-    "false"
-  );
-
-  console.log({
-    detailContentScrollTop:
-      elements.detailContent.scrollTop,
-
-    detailScreenScrollTop:
-      elements.detailScreen.scrollTop,
-
-    shellScrollTop:
-      elements.shell.scrollTop,
-
-    documentScrollTop:
-      document.documentElement.scrollTop
-  });
+  elements.detailScreen.setAttribute("aria-hidden", "false");
+  elements.detailContent.setAttribute("aria-hidden", "false");
 
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
@@ -322,7 +301,6 @@ function closeDetail() {
 
 function renderDetail(monitor) {
   const status = getMonitorStatus(monitor);
-  // elements.detailHeaderTitle.textContent = monitor.title || "Monitor";
   elements.detailTitle.textContent = monitor.title || "Untitled page";
   elements.detailDomain.textContent = getDomain(monitor.url);
   elements.detailSiteIcon.textContent = getInitial(monitor);
@@ -573,9 +551,9 @@ function updateWatchButton() {
     state.tab?.url
       ? validateUrl(state.tab.url)
       : {
-          valid: false,
-          reason: "Current page unavailable"
-        };
+        valid: false,
+        reason: "Current page unavailable"
+      };
 
   const buttonText =
     elements.watchButton.querySelector(

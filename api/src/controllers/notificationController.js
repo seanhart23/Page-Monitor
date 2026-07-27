@@ -66,8 +66,7 @@ export async function getPendingNotifications(
 
         return response.status(500).json({
             success: false,
-            message:
-                "Unable to get pending notifications"
+            message: "Unable to get pending notifications"
         });
     }
 }
@@ -100,8 +99,7 @@ export async function acknowledgeNotification(
         if (!monitor) {
             return response.status(404).json({
                 success: false,
-                message:
-                    "Pending notification not found"
+                message: "Pending notification not found"
             });
         }
 
@@ -117,8 +115,7 @@ export async function acknowledgeNotification(
 
         return response.status(500).json({
             success: false,
-            message:
-                "Unable to acknowledge notification"
+            message: "Unable to acknowledge notification"
         });
     }
 }
