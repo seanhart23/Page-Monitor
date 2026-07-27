@@ -1,12 +1,17 @@
 import mongoose from "mongoose";
+import { Monitor } from "../models/monitor.js";
 
 export async function connectDatabase() {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
+const connection =
+    await mongoose.connect(
+        process.env.MONGODB_URI
+    );
 
-    console.log("MongoDB connected");
-  } catch (error) {
-    console.error("MongoDB connection failed:", error);
-    process.exit(1);
-  }
+console.log("MongoDB connected:", {
+    environment:
+        process.env.NODE_ENV,
+
+    database:
+        connection.connection.name
+});
 }

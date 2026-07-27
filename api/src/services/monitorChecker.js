@@ -1,8 +1,12 @@
-import { Monitor } from "../models/monitor.js";
 import { ChangeEvent } from "../models/changeEvent.js";
 
-import { extractMeaningfulContent } from "./contentExtractor.js";
-import { createFingerprint } from "./fingerprint.js";
+import {
+    extractMeaningfulContent
+} from "./contentExtractor.js";
+
+import {
+    createFingerprint
+} from "./fingerprint.js";
 
 import {
     normalizePageText,
@@ -14,12 +18,84 @@ export async function checkMonitor(monitor) {
     const checkedAt = new Date();
 
     try {
+        /*
+         * Page monitors always inspect the body.
+         * Element monitors inspect their saved CSS selector.
+         */
+        const selector =
+            monitor.monitorType === "element"
+                ? monitor.contentSelector?.trim()
+                : "body";
+
+        if (!selector) {
+            throw new Error(
+                "This element monitor does not have a CSS selector."
+            );
+        }
+
+        console.log("MONITOR CHECK STARTED:", {
+            id: monitor._id,
+            url: monitor.url,
+            monitorType: monitor.monitorType,
+            contentSelector: selector,
+            selectedElement: monitor.selectedElement
+        });
+
         const response = await fetch(monitor.url, {
             headers: {
                 "User-Agent":
-                    "Mozilla/5.0 PageMonitorBot/1.0"
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                    "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                    "Chrome/130.0.0.0 Safari/537.36",
+
+                "Accept":
+                    "text/html,application/xhtml+xml," +
+                    "application/xml;q=0.9," +
+                    "image/avif,image/webp,*/*;q=0.8",
+
+                "Accept-Language":
+                    "en-US,en;q=0.9",
+
+                "Cache-Control":
+                    "no-cache"
             },
-            signal: AbortSignal.timeout(15000)
+
+            signal:
+                AbortSignal.timeout(15000)
+        });
+
+        /*
+         * Read the response before checking response.ok so the
+         * returned page can still be inspected in the logs.
+         */
+        const html = await response.text();
+
+        const selectorId =
+            selector.startsWith("#")
+                ? selector.slice(1)
+                : null;
+
+        console.log("FETCH RESULT:", {
+            status: response.status,
+            ok: response.ok,
+            finalUrl: response.url,
+            redirected: response.redirected,
+            contentType:
+                response.headers.get("content-type"),
+            htmlLength: html.length,
+
+            /*
+             * This is only a rough diagnostic for ID selectors.
+             * Cheerio performs the real selector lookup below.
+             */
+            containsSelectedId:
+                selectorId
+                    ? html.includes(`id="${selectorId}"`) ||
+                      html.includes(`id='${selectorId}'`)
+                    : null,
+
+            pageStart:
+                html.slice(0, 300)
         });
 
         if (!response.ok) {
@@ -28,38 +104,86 @@ export async function checkMonitor(monitor) {
             );
         }
 
-        const html = await response.text();
+        let extractedContent;
 
-        const extractedContent =
-            extractMeaningfulContent(html, {
-                contentSelector:
-                    monitor.contentSelector || "body",
+        try {
+            extractedContent =
+                extractMeaningfulContent(html, {
+                    contentSelector:
+                        selector,
 
-                ignoreSelectors:
-                    monitor.ignoreSelectors || []
-            });
+                    ignoreSelectors:
+                        Array.isArray(
+                            monitor.ignoreSelectors
+                        )
+                            ? monitor.ignoreSelectors
+                            : []
+                });
+        } catch (error) {
+            throw new Error(
+                `Unable to use selector "${selector}": ${
+                    error instanceof Error
+                        ? error.message
+                        : "Invalid selector"
+                }`
+            );
+        }
+
+        console.log("EXTRACTION RESULT:", {
+            selector,
+            extractedType:
+                typeof extractedContent,
+
+            extractedLength:
+                typeof extractedContent === "string"
+                    ? extractedContent.length
+                    : 0,
+
+            preview:
+                typeof extractedContent === "string"
+                    ? extractedContent.slice(0, 300)
+                    : extractedContent
+        });
+
+        if (
+            typeof extractedContent !== "string"
+        ) {
+            throw new Error(
+                "The content extractor did not return text."
+            );
+        }
+
+        if (
+            monitor.monitorType === "element" &&
+            !extractedContent.trim()
+        ) {
+            throw new Error(
+                `The selected element was not found using selector: ${selector}`
+            );
+        }
 
         /*
-         * Normalize the full extracted content before
-         * generating its fingerprint.
+         * Normalize the extracted content before creating
+         * its fingerprint.
          */
         const normalizedContent =
-            normalizePageText(extractedContent);
+            normalizePageText(
+                extractedContent
+            );
 
-        /*
-         * The fingerprint uses the complete normalized page
-         * content, allowing changes anywhere in the extracted
-         * content to be detected.
-         */
         const newFingerprint =
-            createFingerprint(normalizedContent);
+            createFingerprint(
+                normalizedContent
+            );
 
         /*
-         * Only a limited amount of page text is stored in
-         * MongoDB for generating future change previews.
+         * Store a limited amount of content for future
+         * change previews.
          */
         const storedContent =
-            limitStoredContent(normalizedContent);
+            limitStoredContent(
+                normalizedContent
+            );
 
         const previousFingerprint =
             monitor.lastFingerprint;
@@ -72,32 +196,36 @@ export async function checkMonitor(monitor) {
 
         const changed =
             !isFirstCheck &&
-            previousFingerprint !== newFingerprint;
+            previousFingerprint !==
+                newFingerprint;
 
-        /*
-         * Update the common check-status fields.
-         */
-        monitor.lastCheckedAt = checkedAt;
-        monitor.lastStatus = "success";
-        monitor.lastError = null;
-        monitor.lastCheckChanged = changed;
+        monitor.lastCheckedAt =
+            checkedAt;
+
+        monitor.lastStatus =
+            "success";
+
+        monitor.lastError =
+            null;
+
+        monitor.lastCheckChanged =
+            changed;
 
         if (changed) {
-            /*
-             * Compare the previously stored page text with
-             * the latest stored page text.
-             */
-            const preview = createChangePreview(
-                previousContent,
-                storedContent,
-                {
-                    maxWords: 60,
-                    contextWords: 8
-                }
-            );
+            const preview =
+                createChangePreview(
+                    previousContent,
+                    storedContent,
+                    {
+                        maxWords: 60,
+                        contextWords: 8
+                    }
+                );
 
             await ChangeEvent.create({
-                monitorId: monitor._id,
+                monitorId:
+                    monitor._id,
+
                 installationId:
                     monitor.installationId,
 
@@ -134,21 +262,21 @@ export async function checkMonitor(monitor) {
                 checkedAt
             });
 
-            monitor.lastChangedAt = checkedAt;
+            monitor.lastChangedAt =
+                checkedAt;
 
             monitor.changeCount =
-                Number(monitor.changeCount || 0) + 1;
+                Number(
+                    monitor.changeCount || 0
+                ) + 1;
 
-            monitor.notificationPending = true;
+            monitor.notificationPending =
+                true;
         }
 
         /*
-         * Save the new page state after generating the
+         * Save the new state only after generating the
          * change preview.
-         *
-         * This order is important. Updating lastContent before
-         * createChangePreview() would compare the new page
-         * against itself.
          */
         monitor.lastFingerprint =
             newFingerprint;
@@ -158,20 +286,66 @@ export async function checkMonitor(monitor) {
 
         await monitor.save();
 
+        console.log("MONITOR CHECK COMPLETED:", {
+            id: monitor._id,
+            monitorType:
+                monitor.monitorType,
+            selector,
+            isFirstCheck,
+            changed,
+            normalizedLength:
+                normalizedContent.length
+        });
+
         return {
             success: true,
             changed,
             isFirstCheck,
-            fingerprint: newFingerprint
+            fingerprint:
+                newFingerprint
         };
     } catch (error) {
-        monitor.lastCheckedAt = checkedAt;
-        monitor.lastStatus = "failed";
-
-        monitor.lastError =
+        const errorMessage =
             error instanceof Error
                 ? error.message
                 : "Unknown checking error";
+
+        console.error(
+            "MONITOR CHECK FAILED:",
+            {
+                monitorId:
+                    monitor._id,
+
+                url:
+                    monitor.url,
+
+                monitorType:
+                    monitor.monitorType,
+
+                contentSelector:
+                    monitor.contentSelector,
+
+                error:
+                    errorMessage,
+
+                stack:
+                    error instanceof Error
+                        ? error.stack
+                        : undefined
+            }
+        );
+
+        monitor.lastCheckedAt =
+            checkedAt;
+
+        monitor.lastStatus =
+            "failed";
+
+        monitor.lastError =
+            errorMessage;
+
+        monitor.lastCheckChanged =
+            false;
 
         await monitor.save();
 
@@ -179,7 +353,8 @@ export async function checkMonitor(monitor) {
             success: false,
             changed: false,
             isFirstCheck: false,
-            error: monitor.lastError
+            error:
+                monitor.lastError
         };
     }
 }

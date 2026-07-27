@@ -333,3 +333,194 @@ async function openMonitorDetails(monitorId) {
     url: detailsUrl.toString()
   });
 }
+
+chrome.runtime.onMessage.addListener(
+  (
+    message,
+    sender,
+    sendResponse
+  ) => {
+    if (
+  message.type ===
+  "ELEMENT_SELECTED"
+) {
+  const selectedElement = {
+    ...message.payload,
+
+    tabId:
+      sender.tab?.id || null,
+
+    windowId:
+      sender.tab?.windowId || null
+  };
+
+  chrome.storage.session
+    .set({
+      selectedElement,
+
+      contentSelector:
+        selectedElement.selector,
+
+      selectionCompleted:
+        true
+    })
+    .then(async () => {
+      try {
+        await chrome.action.openPopup({
+          windowId:
+            selectedElement.windowId ||
+            undefined
+        });
+
+        sendResponse({
+          success: true
+        });
+      } catch (error) {
+        console.error(
+          "Unable to reopen popup:",
+          error
+        );
+
+        /*
+         * The selection was still saved, even if Chrome
+         * could not reopen the popup.
+         */
+        sendResponse({
+          success: true,
+          popupOpened: false,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Selection saved, but popup could not open."
+        });
+      }
+    })
+    .catch(error => {
+      console.error(
+        "Unable to save selected element:",
+        error
+      );
+
+      sendResponse({
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unable to save selected element."
+      });
+    });
+
+  return true;
+}
+
+    if (
+      message.type ===
+      "OPEN_AND_HIGHLIGHT_ELEMENT"
+    ) {
+      openAndHighlightElement(
+        message.payload || {}
+      )
+        .then(() => {
+          sendResponse({
+            success: true
+          });
+        })
+        .catch(error => {
+          console.error(
+            "Unable to open highlighted element:",
+            error
+          );
+
+          sendResponse({
+            success: false,
+            message:
+              error instanceof Error
+                ? error.message
+                : "Unable to open page"
+          });
+        });
+
+      return true;
+    }
+
+    return false;
+  }
+);
+
+async function openAndHighlightElement({
+  url,
+  selector
+}) {
+  if (!url || !selector) {
+    throw new Error(
+      "A URL and selector are required."
+    );
+  }
+
+  const tab =
+    await chrome.tabs.create({
+      url,
+      active: true
+    });
+
+  if (!tab.id) {
+    throw new Error(
+      "Unable to open the monitored page."
+    );
+  }
+
+  const tabId =
+    tab.id;
+
+  const handleTabUpdated =
+    async (
+      updatedTabId,
+      changeInfo
+    ) => {
+      if (
+        updatedTabId !== tabId ||
+        changeInfo.status !== "complete"
+      ) {
+        return;
+      }
+
+      chrome.tabs.onUpdated.removeListener(
+        handleTabUpdated
+      );
+
+      /*
+       * Give page scripts a brief opportunity to render
+       * dynamic content before searching for the element.
+       */
+      setTimeout(async () => {
+        try {
+          const result =
+            await chrome.tabs.sendMessage(
+              tabId,
+              {
+                type:
+                  "HIGHLIGHT_MONITORED_ELEMENT",
+
+                selector
+              }
+            );
+
+          if (!result?.success) {
+            console.warn(
+              "Monitored element could not be highlighted:",
+              result?.message
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Unable to send highlight message:",
+            error
+          );
+        }
+      }, 800);
+    };
+
+  chrome.tabs.onUpdated.addListener(
+    handleTabUpdated
+  );
+}

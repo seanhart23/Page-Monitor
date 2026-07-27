@@ -1,4 +1,4 @@
-import { MAX_MONITORS } from "../config.js";
+import { MAX_MONITORS, PREVIEW_MAX_LENGTH } from "../config.js";
 import {
   createMonitor,
   getMonitors,
@@ -12,6 +12,7 @@ const state = {
   tab: null,
   monitors: [],
   selectedMonitor: null,
+  selectedElement: null,
   search: "",
   filter: "all"
 };
@@ -50,7 +51,28 @@ const elements = {
   historyLoading: document.getElementById("history-loading"),
   historyEmpty: document.getElementById("history-empty"),
   historyList: document.getElementById("history-list"),
-  toast: document.getElementById("toast")
+  selectElementButton: document.getElementById("selectElementButton"),
+  selectedElementPreview: document.getElementById("selectedElementPreview"),
+  toast: document.getElementById("toast"),
+  detailMonitorType:
+    document.getElementById(
+      "detail-monitor-type"
+    ),
+
+  detailMonitorDescription:
+    document.getElementById(
+      "detail-monitor-description"
+    ),
+
+  detailMonitorSelector:
+    document.getElementById(
+      "detail-monitor-selector"
+    ),
+
+  highlightElementButton:
+    document.getElementById(
+      "highlight-element-button"
+    ),
 };
 
 await initialize();
@@ -66,11 +88,20 @@ async function initialize() {
   if (autoDetectCurrentTab) {
     await loadCurrentTab();
   }
+  await loadSelectedElement();
   await loadMonitors();
 }
 
 function bindEvents() {
   elements.watchButton.addEventListener("click", handleWatchPage);
+  elements.selectElementButton?.addEventListener(
+    "click",
+    handleSelectElement
+  );
+  elements.highlightElementButton?.addEventListener(
+    "click",
+    handleHighlightElement
+  );
   elements.search.addEventListener("input", event => {
     state.search = event.target.value.trim().toLowerCase();
     renderMonitorList();
@@ -146,8 +177,14 @@ function updateSummary() {
 
 function renderMonitorList() {
   const monitors = state.monitors.filter(monitor => {
-    const searchable = `${monitor.title || ""} ${monitor.url || ""} ${getDomain(monitor.url)}`.toLowerCase();
-    const matchesSearch = !state.search || searchable.includes(state.search);
+    const searchable = `
+    ${monitor.title || ""}
+    ${monitor.url || ""}
+    ${getDomain(monitor.url)}
+    ${monitor.monitorType || ""}
+    ${monitor.contentSelector || ""}
+    ${monitor.selectedElement?.previewText || ""}
+  `.toLowerCase(); const matchesSearch = !state.search || searchable.includes(state.search);
     const matchesFilter = state.filter === "all"
       || (state.filter === "changed" && monitor.lastCheckChanged)
       || (state.filter === "active" && monitor.enabled !== false)
@@ -165,25 +202,113 @@ function renderMonitorList() {
   elements.list.innerHTML = monitors.map(renderMonitorCard).join("");
 }
 
+function truncateText(value, maxLength = PREVIEW_MAX_LENGTH) {
+  const text = String(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength - 1).trim()}…`;
+}
+
 function renderMonitorCard(monitor) {
   const status = getMonitorStatus(monitor);
+
   const icon = monitor.icon
     ? `<img src="${escapeAttribute(monitor.icon)}" alt="">`
     : escapeHtml(getInitial(monitor));
 
+  const isElementMonitor =
+    monitor.monitorType === "element";
+
+  const monitorTypeLabel =
+    isElementMonitor
+      ? "Element"
+      : "Page";
+
+  const monitorTypeIcon =
+    isElementMonitor
+      ? "◎"
+      : "▱";
+
+  const selectedPreview =
+    monitor.selectedElement?.previewText;
+
+  const targetDescription =
+    isElementMonitor
+      ? selectedPreview
+        ? truncateText(selectedPreview)
+        : monitor.contentSelector || "Selected element"
+      : "Entire page";
+
   return `
-    <article class="monitor-card" data-id="${escapeAttribute(monitor._id)}" role="button" tabindex="0">
-      <div class="site-icon">${icon}</div>
+    <article
+      class="monitor-card"
+      data-id="${escapeAttribute(monitor._id)}"
+      role="button"
+      tabindex="0"
+    >
+      <div class="site-icon">
+        ${icon}
+      </div>
+
       <div class="monitor-copy">
-        <h2>${escapeHtml(monitor.title || "Untitled page")}</h2>
-        <p>${escapeHtml(getDomain(monitor.url))}</p>
-        <p class="${monitor.lastCheckChanged ? "changed-copy" : ""}">${escapeHtml(status.meta)}</p>
+        <div class="monitor-title-row">
+          <h2>
+            ${escapeHtml(
+    monitor.title || "Untitled page"
+  )}
+          </h2>
+
+          <span class="monitor-type-badge ${isElementMonitor
+      ? "monitor-type-badge--element"
+      : "monitor-type-badge--page"
+    }">
+            <span aria-hidden="true">
+              ${monitorTypeIcon}
+            </span>
+
+            ${monitorTypeLabel}
+          </span>
+        </div>
+
+        <p>
+          ${escapeHtml(
+      getDomain(monitor.url)
+    )}
+        </p>
+
+        <p class="monitor-target-copy">
+          ${isElementMonitor
+      ? "Monitoring:"
+      : "Monitoring:"
+    }
+
+          ${escapeHtml(targetDescription)}
+        </p>
+
+        <p class="${monitor.lastCheckChanged
+      ? "changed-copy"
+      : ""
+    }">
+          ${escapeHtml(status.meta)}
+        </p>
       </div>
+
       <div class="monitor-side">
-        <span class="status-pill ${status.className}">${status.label}</span>
-        <span class="chevron">›</span>
+        <span class="status-pill ${status.className}">
+          ${status.label}
+        </span>
+
+        <span class="chevron">
+          ›
+        </span>
       </div>
-    </article>`;
+    </article>
+  `;
 }
 
 function getMonitorStatus(monitor) {
@@ -206,45 +331,137 @@ async function handleWatchPage() {
   elements.status.textContent = "Saving...";
 
   try {
+    const storageResult =
+      await chrome.storage.session.get(
+        "selectedElement"
+      );
+
+    const selectedElement =
+      state.selectedElement ||
+      storageResult.selectedElement ||
+      null;
+
+    // if (selectedElement) {
+    //   const validation =
+    //     await validateSelectedElement(
+    //       selectedElement
+    //     );
+
+    //   if (!validation?.valid) {
+    // //     elements.status.textContent =
+    // //       validation?.message ||
+    // //       "The selected element could not be found.";
+
+    // //     showToast(
+    // //       validation?.message ||
+    // //       "Please select the element again.",
+    // //       true
+    // //     );
+
+    // //     return;
+    // //   }
+
+    //   /*
+    //    * Refresh the stored preview text in case the element
+    //    * changed between selection and saving.
+    //    */
+    //   selectedElement.tagName =
+    //     validation.tagName ||
+    //     selectedElement.tagName;
+
+    //   selectedElement.text =
+    //     validation.text ||
+    //     selectedElement.text;
+    // }
+    console.log(
+      "Selected element at save time:",
+      selectedElement
+    );
+
     const {
       defaultCheckInterval = 30
     } = await chrome.storage.sync.get({
       defaultCheckInterval: 30
     });
 
-    await createMonitor({
-      title: state.tab.title || "Untitled page",
-      url: state.tab.url,
-      icon: state.tab.favIconUrl || "",
-      checkInterval: Number(defaultCheckInterval)
-    });
+    const payload = {
+      title:
+        state.tab.title ||
+        "Untitled page",
+
+      url:
+        state.tab.url,
+
+      icon:
+        state.tab.favIconUrl ||
+        "",
+
+      checkInterval:
+        Number(defaultCheckInterval),
+
+      monitorType:
+        selectedElement
+          ? "element"
+          : "page",
+
+      contentSelector:
+        selectedElement?.selector ||
+        "body",
+
+      comparisonMode:
+        "text",
+
+      selectedElement:
+        selectedElement
+          ? {
+            tagName:
+              selectedElement.tagName,
+
+            previewText:
+              selectedElement.text
+          }
+          : null
+    };
+
+    console.log(
+      "CREATE MONITOR PAYLOAD:",
+      payload
+    );
+
+    await createMonitor(payload);
+
+    await chrome.storage.session.remove(
+      "selectedElement"
+    );
+
+    state.selectedElement = null;
 
     elements.status.textContent = "";
-    showToast("This page is now being monitored.");
+
+    showToast(
+      selectedElement
+        ? "This element is now being monitored."
+        : "This page is now being monitored."
+    );
+
+    await loadSelectedElement();
     await loadMonitors();
 
   } catch (error) {
-
-    if (error.code === "MONITOR_LIMIT_REACHED") {
-      elements.status.textContent = error.message;
-      showToast(error.message, true);
-      return;
-    }
-
-    if (error.code === "MONITOR_ALREADY_EXISTS") {
-      elements.status.textContent = error.message;
-      showToast(error.message, true);
-      return;
-    }
-
-    elements.status.textContent =
-      error.message || "Unable to save page.";
-
-    showToast(
-      error.message || "Unable to save page.",
-      true
+    console.error(
+      "Monitor creation failed:",
+      error
     );
 
+    elements.status.textContent =
+      error.message ||
+      "Unable to save page.";
+
+    showToast(
+      error.message ||
+      "Unable to save page.",
+      true
+    );
   } finally {
     updateWatchButton();
   }
@@ -309,6 +526,42 @@ function renderDetail(monitor) {
   elements.detailChangeCount.textContent = String(monitor.changeCount ?? 0);
   elements.detailLastChange.textContent = monitor.lastChangedAt ? formatCompactTime(monitor.lastChangedAt) : "Never";
   elements.detailLastChecked.textContent = monitor.lastCheckedAt ? formatCompactTime(monitor.lastCheckedAt) : "Never";
+  const isElementMonitor =
+    monitor.monitorType === "element";
+
+  if (elements.detailMonitorType) {
+    elements.detailMonitorType.textContent =
+      isElementMonitor
+        ? "Element monitor"
+        : "Page monitor";
+  }
+
+  if (elements.detailMonitorDescription) {
+    elements.detailMonitorDescription.textContent =
+      isElementMonitor
+        ? monitor.selectedElement?.previewText ||
+        "Monitoring a selected element"
+        : "Monitoring the entire page";
+  }
+
+  if (elements.detailMonitorSelector) {
+    elements.detailMonitorSelector.textContent =
+      isElementMonitor
+        ? monitor.contentSelector || ""
+        : "";
+
+    elements.detailMonitorSelector.classList.toggle(
+      "hidden",
+      !isElementMonitor
+    );
+  }
+
+  if (elements.highlightElementButton) {
+    elements.highlightElementButton.classList.toggle(
+      "hidden",
+      !isElementMonitor
+    );
+  }
 }
 
 function renderHistoryEvent(event) {
@@ -580,7 +833,9 @@ function updateWatchButton() {
 
     if (buttonText) {
       buttonText.textContent =
-        "Monitor this page";
+        state.selectedElement
+          ? "Monitor selected element"
+          : "Monitor this page";
     }
 
     return;
@@ -591,6 +846,265 @@ function updateWatchButton() {
 
   if (buttonText) {
     buttonText.textContent =
-      "Monitor this page";
+      state.selectedElement
+        ? "Monitor selected element"
+        : "Monitor this page";
+  }
+}
+
+
+async function loadSelectedElement() {
+  const result =
+    await chrome.storage.session.get(
+      "selectedElement"
+    );
+
+  const storedElement =
+    result.selectedElement;
+
+  console.log(
+    "Selected element from storage:",
+    storedElement
+  );
+
+  const belongsToCurrentTab =
+    storedElement &&
+    (
+      storedElement.tabId == null ||
+      storedElement.tabId === state.tab?.id
+    );
+
+  state.selectedElement =
+    belongsToCurrentTab
+      ? storedElement
+      : null;
+
+  const preview =
+    elements.selectedElementPreview;
+
+  if (!preview) {
+    console.error(
+      'Missing HTML element with id="selectedElementPreview"'
+    );
+    return;
+  }
+
+  if (!state.selectedElement) {
+    preview.innerHTML = "";
+    preview.hidden = true;
+    updateWatchButton();
+    return;
+  }
+
+  preview.innerHTML = `
+    <strong>Selected element</strong>
+    <code>${escapeHtml(
+    state.selectedElement.selector
+  )}</code>
+    <div>
+      ${escapeHtml(
+    state.selectedElement.text ||
+    "No visible text found"
+  )}
+    </div>
+  `;
+
+  preview.hidden = false;
+  updateWatchButton();
+}
+
+async function handleSelectElement() {
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true
+  });
+
+  if (!tab?.id) {
+    showToast("This page cannot be selected.", true);
+    return;
+  }
+
+  try {
+    await chrome.tabs.sendMessage(tab.id, {
+      type: "START_ELEMENT_SELECTION"
+    });
+
+    window.close();
+  } catch (error) {
+    console.error("Unable to start element selection:", error);
+    showToast(
+      "Refresh the webpage and try again.",
+      true
+    );
+  }
+}
+
+async function handleHighlightElement() {
+  const monitor =
+    state.selectedMonitor;
+
+  if (
+    !monitor?.url ||
+    monitor.monitorType !== "element" ||
+    !monitor.contentSelector
+  ) {
+    showToast(
+      "This monitor does not have an element selector.",
+      true
+    );
+
+    return;
+  }
+
+  try {
+    await chrome.runtime.sendMessage({
+      type:
+        "OPEN_AND_HIGHLIGHT_ELEMENT",
+
+      payload: {
+        url:
+          monitor.url,
+
+        selector:
+          monitor.contentSelector
+      }
+    });
+  } catch (error) {
+    console.error(
+      "Unable to highlight element:",
+      error
+    );
+
+    showToast(
+      "Unable to open the monitored element.",
+      true
+    );
+  }
+}
+// async function validateSelectedElement({
+//   selector,
+//   tabId
+// }) {
+//   if (!selector?.trim()) {
+//     return {
+//       valid: false,
+//       message:
+//         "No CSS selector was provided."
+//     };
+//   }
+
+//   const targetTabId =
+//     tabId || state.tab?.id;
+
+//   if (!targetTabId) {
+//     return {
+//       valid: false,
+//       message:
+//         "The selected webpage is no longer available."
+//     };
+//   }
+
+//   const message = {
+//     type:
+//       "VALIDATE_SELECTOR",
+
+//     selector:
+//       selector.trim()
+//   };
+
+//   try {
+//     return await chrome.tabs.sendMessage(
+//       targetTabId,
+//       message
+//     );
+//   } catch (firstError) {
+//     console.warn(
+//       "Validation listener unavailable. Injecting content script.",
+//       firstError
+//     );
+
+//     try {
+//       await chrome.scripting.executeScript({
+//         target: {
+//           tabId:
+//             targetTabId
+//         },
+
+//         files: [
+//           "content/elementSelector.js"
+//         ]
+//       });
+
+//       return await chrome.tabs.sendMessage(
+//         targetTabId,
+//         message
+//       );
+//     } catch (secondError) {
+//       console.error(
+//         "Unable to validate selected element:",
+//         {
+//           firstError,
+//           secondError,
+//           tabId:
+//             targetTabId,
+//           selector
+//         }
+//       );
+
+//       return {
+//         valid: false,
+//         message:
+//           secondError instanceof Error
+//             ? secondError.message
+//             : "Unable to validate the selected element."
+//       };
+//     }
+//   }
+// }
+
+async function restoreSelectedElement() {
+  try {
+    const {
+      selectedElement,
+      contentSelector,
+      selectionCompleted
+    } =
+      await chrome.storage.session.get([
+        "selectedElement",
+        "contentSelector",
+        "selectionCompleted"
+      ]);
+
+    if (
+      !selectionCompleted ||
+      !selectedElement
+    ) {
+      return;
+    }
+
+    state.selectedElement =
+      selectedElement;
+
+    state.contentSelector =
+      contentSelector ||
+      selectedElement.selector ||
+      null;
+
+    renderSelectedElement(
+      selectedElement
+    );
+
+    /*
+     * Clear only the completion flag so reopening the
+     * popup later does not repeatedly trigger selection UI.
+     */
+    await chrome.storage.session.remove(
+      "selectionCompleted"
+    );
+  } catch (error) {
+    console.error(
+      "Unable to restore selected element:",
+      error
+    );
   }
 }

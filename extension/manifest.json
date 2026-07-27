@@ -1,16 +1,30 @@
 {
   "manifest_version": 3,
   "name": "Smart Page Monitor",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Monitor any webpage and get notified the moment content changes—no more refreshing tabs or checking manually.",
   "permissions": [
     "storage",
     "activeTab",
     "notifications",
-    "alarms"
+    "alarms",
+    "tabs", 
+    "scripting"
   ],
   "host_permissions": [
-    "https://smart-page-monitor-api.onrender.com/*"
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "content/elementSelector.js"
+      ],
+      "run_at": "document_idle"
+    }
   ],
   "options_ui": {
     "page": "settings.html",

@@ -28,22 +28,86 @@ export async function getMonitors(request, response) {
   }
 }
 
+
 export async function createMonitor(request, response) {
   try {
-    const { title, url, icon, checkInterval } = request.body;
-
     const installationId =
       request.installation.installationId;
 
     const maxMonitors =
       Number(
         process.env.MAX_MONITORS_PER_INSTALLATION
-      ) || process.env.DEFAULT_MAX_MONITORS;
+      ) ||
+      Number(
+        process.env.DEFAULT_MAX_MONITORS
+      ) ||
+      DEFAULT_MAX_MONITORS;
+
+    const {
+      title,
+      url,
+      icon,
+      checkInterval,
+      monitorType = "page",
+      contentSelector = "body",
+      comparisonMode = "text",
+      selectedElement = null,
+      ignoreSelectors = []
+    } = request.body;
+
+    console.log("ELEMENT MONITOR CREATE DATA:", {
+      monitorType,
+      contentSelector,
+      comparisonMode,
+      selectedElement
+    });
 
     if (!url) {
       return response.status(400).json({
         success: false,
         message: "URL is required"
+      });
+    }
+
+    if (
+      !["page", "element"].includes(
+        monitorType
+      )
+    ) {
+      return response.status(400).json({
+        success: false,
+        message: "Invalid monitor type"
+      });
+    }
+
+    if (
+      !["text", "html"].includes(
+        comparisonMode
+      )
+    ) {
+      return response.status(400).json({
+        success: false,
+        message: "Invalid comparison mode"
+      });
+    }
+
+    const effectiveSelector =
+      monitorType === "element"
+        ? contentSelector?.trim()
+        : "body";
+
+    if (
+      monitorType === "element" &&
+      (
+        !effectiveSelector ||
+        effectiveSelector === "body"
+      )
+    ) {
+      return response.status(400).json({
+        success: false,
+        code: "ELEMENT_SELECTOR_REQUIRED",
+        message:
+          "Element monitors require a selected element."
       });
     }
 
@@ -58,17 +122,36 @@ export async function createMonitor(request, response) {
       });
     }
 
-    const existingMonitor = await Monitor.findOne({
+    console.log("Creating monitor:", {
+      installationId,
       normalizedUrl,
-      installationId
+      monitorType,
+      contentSelector:
+        effectiveSelector,
+      selectedElement
     });
+
+    const duplicateQuery = {
+      installationId,
+      normalizedUrl,
+      contentSelector:
+        effectiveSelector
+    };
+
+    const existingMonitor =
+      await Monitor.findOne(
+        duplicateQuery
+      );
 
     if (existingMonitor) {
       return response.status(409).json({
         success: false,
-        code: "MONITOR_ALREADY_EXISTS",
+        code:
+          "MONITOR_ALREADY_EXISTS",
         message:
-          "This page is already being monitored"
+          monitorType === "element"
+            ? "This element is already being monitored."
+            : "This page is already being monitored."
       });
     }
 
@@ -77,44 +160,99 @@ export async function createMonitor(request, response) {
         installationId
       });
 
-    if (monitorCount >= maxMonitors) {
+    if (
+      monitorCount >= maxMonitors
+    ) {
       return response.status(403).json({
         success: false,
-        code: "MONITOR_LIMIT_REACHED",
+        code:
+          "MONITOR_LIMIT_REACHED",
         message:
-          `You have reached the limit of ${maxMonitors} monitored pages.`,
+          `You have reached the limit of ${maxMonitors} monitors.`,
         limit: maxMonitors,
-        currentCount: monitorCount
+        currentCount:
+          monitorCount
       });
     }
 
-    const monitor = await Monitor.create({
-      title: title?.trim() || "Untitled page",
-      url,
-      normalizedUrl,
-      icon,
-      checkInterval:
-        Number(checkInterval) || 30,
-      installationId
-    });
+    const monitor =
+      await Monitor.create({
+        installationId,
+
+        title:
+          title?.trim() ||
+          "Untitled page",
+
+        url,
+        normalizedUrl,
+
+        icon:
+          icon || "",
+
+        checkInterval:
+          Number(checkInterval) ||
+          30,
+
+        monitorType,
+
+        contentSelector:
+          effectiveSelector,
+
+        comparisonMode,
+
+        selectedElement:
+          monitorType === "element"
+            ? selectedElement
+            : null,
+
+        ignoreSelectors:
+          Array.isArray(
+            ignoreSelectors
+          )
+            ? ignoreSelectors
+            : []
+      });
+
+      console.log("SAVED MONITOR:", {
+        id: monitor._id,
+        monitorType: monitor.monitorType,
+        contentSelector: monitor.contentSelector,
+        comparisonMode: monitor.comparisonMode,
+        selectedElement: monitor.selectedElement
+      });
 
     return response.status(201).json({
       success: true,
       data: monitor,
       usage: {
-        currentCount: monitorCount + 1,
-        limit: maxMonitors
+        currentCount:
+          monitorCount + 1,
+
+        limit:
+          maxMonitors
       }
     });
+
   } catch (error) {
     console.error(
       "Unable to create monitor:",
       error
     );
 
+    if (error.code === 11000) {
+      return response.status(409).json({
+        success: false,
+        code:
+          "MONITOR_ALREADY_EXISTS",
+        message:
+          "This page or element is already being monitored."
+      });
+    }
+
     return response.status(500).json({
       success: false,
-      message: "Unable to create monitor"
+      message:
+        "Unable to create monitor"
     });
   }
 }

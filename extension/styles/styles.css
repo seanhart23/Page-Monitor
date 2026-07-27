@@ -886,3 +886,120 @@ svg {
   background: #effaf3;
   color: #17663a;
 }
+
+.monitor-type-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.secondary-button {
+    padding: 10px 14px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background .2s;
+}
+
+.secondary-button:hover {
+    background: #f6f7f9;
+}
+
+.selected-element-preview {
+    font-size: 12px;
+    color: #666;
+}
+
+.monitor-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.monitor-title-row h2 {
+  min-width: 0;
+  margin: 0;
+}
+
+.monitor-type-badge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 1px solid rgba(100, 116, 139, 0.25);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+.monitor-type-badge--page {
+  background: rgba(100, 116, 139, 0.08);
+}
+
+.monitor-type-badge--element {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.25);
+}
+
+.monitor-target-copy {
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--text-secondary, #64748b);
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-monitor-target {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(100, 116, 139, 0.18);
+  border-radius: 12px;
+  background: rgba(100, 116, 139, 0.05);
+}
+
+.detail-monitor-target__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.detail-monitor-target__description {
+  margin: 8px 0 0;
+  color: var(--text-secondary, #64748b);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.detail-monitor-target__selector {
+  display: block;
+  max-width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  overflow-x: auto;
+  border-radius: 7px;
+  background: rgba(15, 23, 42, 0.06);
+  font-family: monospace;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.detail-monitor-target .secondary-button {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.hidden {
+  display: none !important;
+}
