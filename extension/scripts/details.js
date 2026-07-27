@@ -309,16 +309,16 @@ function renderHistoryEvent(event) {
       <div class="history-content">
         <p class="history-date">
           ${escapeHtml(
-            formatDateTime(
-              event.checkedAt || event.createdAt
-            )
-          )}
+    formatDateTime(
+      event.checkedAt || event.createdAt
+    )
+  )}
         </p>
 
         <p class="history-summary">
           ${escapeHtml(
-            event.summary || "Page content changed"
-          )}
+    event.summary || "Page content changed"
+  )}
         </p>
 
         ${preview}
