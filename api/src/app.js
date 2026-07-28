@@ -36,6 +36,12 @@ app.get("/api/test-page", (req, res) => {
     `);
 });
 
+app.get("/api/config", (req, res) => {
+    res.send(`
+        ${process.env.NODE_ENV}
+    `);
+});
+
 app.use("/api/monitors", monitorRoutes);
 
 app.use((request, response) => {
@@ -45,10 +51,6 @@ app.use((request, response) => {
   });
 });
 
-// app.get('/api/config', (req, res) => {
-//   res.json({
-//     NODE_ENV: process.env.NODE_ENV,
-//   });
-// });
+
 
 export default app;
