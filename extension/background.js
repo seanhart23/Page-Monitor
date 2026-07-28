@@ -128,7 +128,7 @@ async function showChangeNotification(monitor, change) {
     {
       type: "basic",
       iconUrl: chrome.runtime.getURL(
-        "icons/icon.png"
+        "ui/icons/icon.png"
       ),
       title: `${pageTitle} changed`,
       message: createNotificationMessage(change),

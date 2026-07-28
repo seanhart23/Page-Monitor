@@ -182,7 +182,7 @@ async function sendTestNotification() {
         {
           type: "basic",
           iconUrl: chrome.runtime.getURL(
-            "icons/icon.png"
+            "ui/icons/icon.png"
           ),
           title: "Smart Page Monitor",
           message: "Test successful! Notifications are working.",

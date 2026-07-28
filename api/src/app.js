@@ -36,12 +36,6 @@ app.get("/api/test-page", (req, res) => {
     `);
 });
 
-app.get("/api/config", (req, res) => {
-    res.send(`
-        ${process.env.NODE_ENV}
-    `);
-});
-
 app.use("/api/monitors", monitorRoutes);
 
 app.use((request, response) => {
