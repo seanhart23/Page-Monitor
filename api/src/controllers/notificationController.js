@@ -92,7 +92,7 @@ export async function acknowledgeNotification(
                     }
                 },
                 {
-                    new: true
+                    returnDocument: "after"
                 }
             );
 

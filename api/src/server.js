@@ -5,13 +5,7 @@ import { startMonitorScheduler } from "./services/monitorScheduler.js";
 
 const port = process.env.PORT || 3000;
 const environment = process.env.NODE_ENV;
-var url = "";
-
-if(environment === "development"){
-  url = `http://localhost:${port}`
-} else {
-  url = "https://smart-page-monitor-api.onrender.com/api"
-}
+const url = environment === "development" ? `http://localhost:${port}` : "https://smart-page-monitor-api.onrender.com/api";
 
 async function startServer() {
   await connectDatabase();
