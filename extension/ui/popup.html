@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Page Monitor</title>
-  <link rel="stylesheet" href="/styles/styles.css">
+  <link rel="stylesheet" href="./styles/styles.css">
 </head>
 
 <body>
@@ -64,6 +64,23 @@
           <span>Monitor this page</span>
         </button>
         <p id="status" class="inline-status" aria-live="polite"></p>
+        <!-- <div class="detail-monitor-target">
+          <div class="detail-monitor-target__header">
+            <span id="detail-monitor-type">
+              Page monitor
+            </span>
+          </div>
+
+          <p id="detail-monitor-description" class="detail-monitor-target__description">
+            Monitoring the entire page
+          </p>
+
+          <code id="detail-monitor-selector" class="detail-monitor-target__selector hidden"></code>
+
+          <button id="highlight-element-button" class="secondary-button hidden" type="button">
+            Show monitored element
+          </button>
+        </div> -->
       </section>
 
       <div class="toolbar">
@@ -145,7 +162,7 @@
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </div>
-  <script type="module" src="./scripts/popup.js"></script>
+  <script type="module" src="../scripts/popup.js"></script>
 </body>
 
 </html>

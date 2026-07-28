@@ -1,4 +1,8 @@
-import { ChangeEvent } from "../models/changeEvent.js";
+import * as cheerio from "cheerio";
+
+import {
+    ChangeEvent
+} from "../models/changeEvent.js";
 
 import {
     extractMeaningfulContent
@@ -14,18 +18,25 @@ import {
     createChangePreview
 } from "../utils/createChangePreview.js";
 
-export async function checkMonitor(monitor) {
+export async function checkMonitor(
+    monitor
+) {
     const checkedAt = new Date();
 
+    const isElementMonitor =
+        monitor.monitorType === "element";
+
+    const selector =
+        isElementMonitor
+            ? monitor.contentSelector?.trim()
+            : "body";
+
     try {
-        /*
-         * Page monitors always inspect the body.
-         * Element monitors inspect their saved CSS selector.
-         */
-        const selector =
-            monitor.monitorType === "element"
-                ? monitor.contentSelector?.trim()
-                : "body";
+        if (!monitor.url) {
+            throw new Error(
+                "This monitor does not have a URL."
+            );
+        }
 
         if (!selector) {
             throw new Error(
@@ -33,70 +44,41 @@ export async function checkMonitor(monitor) {
             );
         }
 
-        console.log("MONITOR CHECK STARTED:", {
-            id: monitor._id,
-            url: monitor.url,
-            monitorType: monitor.monitorType,
-            contentSelector: selector,
-            selectedElement: monitor.selectedElement
-        });
+        const response = await fetch(
+            monitor.url,
+            {
+                redirect: "follow",
 
-        const response = await fetch(monitor.url, {
-            headers: {
-                "User-Agent":
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-                    "AppleWebKit/537.36 (KHTML, like Gecko) " +
-                    "Chrome/130.0.0.0 Safari/537.36",
+                headers: {
+                    "User-Agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                        "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                        "Chrome/130.0.0.0 Safari/537.36",
 
-                "Accept":
-                    "text/html,application/xhtml+xml," +
-                    "application/xml;q=0.9," +
-                    "image/avif,image/webp,*/*;q=0.8",
+                    Accept:
+                        "text/html,application/xhtml+xml," +
+                        "application/xml;q=0.9," +
+                        "image/avif,image/webp,*/*;q=0.8",
 
-                "Accept-Language":
-                    "en-US,en;q=0.9",
+                    "Accept-Language":
+                        "en-US,en;q=0.9",
 
-                "Cache-Control":
-                    "no-cache"
-            },
+                    "Cache-Control":
+                        "no-cache",
 
-            signal:
-                AbortSignal.timeout(15000)
-        });
+                    Pragma:
+                        "no-cache"
+                },
 
-        /*
-         * Read the response before checking response.ok so the
-         * returned page can still be inspected in the logs.
-         */
-        const html = await response.text();
+                signal:
+                    AbortSignal.timeout(
+                        15000
+                    )
+            }
+        );
 
-        const selectorId =
-            selector.startsWith("#")
-                ? selector.slice(1)
-                : null;
-
-        console.log("FETCH RESULT:", {
-            status: response.status,
-            ok: response.ok,
-            finalUrl: response.url,
-            redirected: response.redirected,
-            contentType:
-                response.headers.get("content-type"),
-            htmlLength: html.length,
-
-            /*
-             * This is only a rough diagnostic for ID selectors.
-             * Cheerio performs the real selector lookup below.
-             */
-            containsSelectedId:
-                selectorId
-                    ? html.includes(`id="${selectorId}"`) ||
-                      html.includes(`id='${selectorId}'`)
-                    : null,
-
-            pageStart:
-                html.slice(0, 300)
-        });
+        const html =
+            await response.text();
 
         if (!response.ok) {
             throw new Error(
@@ -104,22 +86,166 @@ export async function checkMonitor(monitor) {
             );
         }
 
+        const contentType =
+            response.headers.get(
+                "content-type"
+            ) || "";
+
+        if (
+            !contentType.includes(
+                "text/html"
+            ) &&
+            !contentType.includes(
+                "application/xhtml+xml"
+            )
+        ) {
+            throw new Error(
+                `The URL did not return an HTML webpage. Received: ${
+                    contentType ||
+                    "unknown content type"
+                }`
+            );
+        }
+
+        if (
+            isElementMonitor &&
+            response.redirected &&
+            isLikelyAuthenticationUrl(
+                response.url
+            )
+        ) {
+            throw new Error(
+                "The webpage redirected to a login page. " +
+                "Authenticated pages cannot currently be checked by the server."
+            );
+        }
+
+        if (
+            isElementMonitor &&
+            isLikelyAuthenticationPage(
+                html,
+                response.url
+            )
+        ) {
+            throw new Error(
+                "The server received a login or authentication page instead of the monitored webpage."
+            );
+        }
+
+        let selectorInspection = null;
+
+        if (isElementMonitor) {
+            selectorInspection =
+                inspectElementSelector(
+                    html,
+                    selector
+                );
+
+            if (
+                !selectorInspection.valid
+            ) {
+                throw new Error(
+                    `The saved element selector is invalid: ${selector}`
+                );
+            }
+
+            if (
+                !selectorInspection.found
+            ) {
+                const likelyClientRendered =
+                    isLikelyClientRenderedPage(
+                        html
+                    );
+
+                console.error(
+                    "ELEMENT NOT FOUND IN FETCHED HTML:",
+                    {
+                        monitorId:
+                            String(
+                                monitor._id
+                            ),
+
+                        requestedUrl:
+                            monitor.url,
+
+                        finalUrl:
+                            response.url,
+
+                        redirected:
+                            response.redirected,
+
+                        selector,
+
+                        likelyClientRendered,
+
+                        pagePreview:
+                            createHtmlTextPreview(
+                                html,
+                                500
+                            )
+                    }
+                );
+
+                if (
+                    likelyClientRendered
+                ) {
+                    throw new Error(
+                        "The selected element was not present in the server-fetched HTML. " +
+                        "The webpage may create this element with JavaScript after loading."
+                    );
+                }
+
+                if (
+                    response.redirected
+                ) {
+                    throw new Error(
+                        "The selected element was not found after the webpage redirected to another URL."
+                    );
+                }
+
+                throw new Error(
+                    `The selected element was not found using selector: ${selector}`
+                );
+            }
+        }
+
         let extractedContent;
 
         try {
             extractedContent =
-                extractMeaningfulContent(html, {
-                    contentSelector:
-                        selector,
+                extractMeaningfulContent(
+                    html,
+                    {
+                        contentSelector:
+                            selector,
 
-                    ignoreSelectors:
-                        Array.isArray(
-                            monitor.ignoreSelectors
-                        )
-                            ? monitor.ignoreSelectors
-                            : []
-                });
+                        ignoreSelectors:
+                            Array.isArray(
+                                monitor.ignoreSelectors
+                            )
+                                ? monitor.ignoreSelectors
+                                : []
+                    }
+                );
         } catch (error) {
+            console.error(
+                "CONTENT EXTRACTION FAILED:",
+                {
+                    monitorId:
+                        String(
+                            monitor._id
+                        ),
+
+                    selector,
+
+                    error:
+                        error instanceof
+                        Error
+                            ? error.message
+                            : String(error)
+                }
+            );
+
             throw new Error(
                 `Unable to use selector "${selector}": ${
                     error instanceof Error
@@ -129,57 +255,81 @@ export async function checkMonitor(monitor) {
             );
         }
 
-        console.log("EXTRACTION RESULT:", {
-            selector,
-            extractedType:
-                typeof extractedContent,
-
-            extractedLength:
-                typeof extractedContent === "string"
-                    ? extractedContent.length
-                    : 0,
-
-            preview:
-                typeof extractedContent === "string"
-                    ? extractedContent.slice(0, 300)
-                    : extractedContent
-        });
-
         if (
-            typeof extractedContent !== "string"
+            typeof extractedContent !==
+            "string"
         ) {
             throw new Error(
                 "The content extractor did not return text."
             );
         }
 
+        /*
+         * The normal extractor may return an empty value for
+         * inputs, images, or elements whose value is stored
+         * in an attribute rather than textContent.
+         */
         if (
-            monitor.monitorType === "element" &&
+            isElementMonitor &&
+            !extractedContent.trim() &&
+            selectorInspection?.attributeText
+        ) {
+            extractedContent =
+                selectorInspection
+                    .attributeText;
+        }
+
+        if (
+            isElementMonitor &&
             !extractedContent.trim()
         ) {
+            console.error(
+                "ELEMENT FOUND BUT CONTENT WAS EMPTY:",
+                {
+                    monitorId:
+                        String(
+                            monitor._id
+                        ),
+
+                    selector,
+
+                    tagName:
+                        selectorInspection
+                            ?.tagName,
+
+                    matchCount:
+                        selectorInspection
+                            ?.matchCount,
+
+                    preview:
+                        selectorInspection
+                            ?.preview
+                }
+            );
+
             throw new Error(
-                `The selected element was not found using selector: ${selector}`
+                "The selected element was found, but it did not contain monitorable text."
             );
         }
 
-        /*
-         * Normalize the extracted content before creating
-         * its fingerprint.
-         */
         const normalizedContent =
             normalizePageText(
                 extractedContent
             );
+
+        if (!normalizedContent) {
+            throw new Error(
+                isElementMonitor
+                    ? "The selected element contained no text after normalization."
+                    : "The webpage contained no monitorable text."
+            );
+        }
 
         const newFingerprint =
             createFingerprint(
                 normalizedContent
             );
 
-        /*
-         * Store a limited amount of content for future
-         * change previews.
-         */
         const storedContent =
             limitStoredContent(
                 normalizedContent
@@ -230,6 +380,7 @@ export async function checkMonitor(monitor) {
                     monitor.installationId,
 
                 previousFingerprint,
+
                 newFingerprint,
 
                 changeType:
@@ -267,17 +418,14 @@ export async function checkMonitor(monitor) {
 
             monitor.changeCount =
                 Number(
-                    monitor.changeCount || 0
+                    monitor.changeCount ||
+                    0
                 ) + 1;
 
             monitor.notificationPending =
                 true;
         }
 
-        /*
-         * Save the new state only after generating the
-         * change preview.
-         */
         monitor.lastFingerprint =
             newFingerprint;
 
@@ -285,17 +433,6 @@ export async function checkMonitor(monitor) {
             storedContent;
 
         await monitor.save();
-
-        console.log("MONITOR CHECK COMPLETED:", {
-            id: monitor._id,
-            monitorType:
-                monitor.monitorType,
-            selector,
-            isFirstCheck,
-            changed,
-            normalizedLength:
-                normalizedContent.length
-        });
 
         return {
             success: true,
@@ -314,24 +451,20 @@ export async function checkMonitor(monitor) {
             "MONITOR CHECK FAILED:",
             {
                 monitorId:
-                    monitor._id,
-
-                url:
-                    monitor.url,
+                    String(
+                        monitor._id
+                    ),
 
                 monitorType:
                     monitor.monitorType,
 
-                contentSelector:
-                    monitor.contentSelector,
+                requestedUrl:
+                    monitor.url,
+
+                selector,
 
                 error:
-                    errorMessage,
-
-                stack:
-                    error instanceof Error
-                        ? error.stack
-                        : undefined
+                    errorMessage
             }
         );
 
@@ -347,14 +480,355 @@ export async function checkMonitor(monitor) {
         monitor.lastCheckChanged =
             false;
 
-        await monitor.save();
+        try {
+            await monitor.save();
+        } catch (saveError) {
+            console.error(
+                "UNABLE TO SAVE FAILED MONITOR STATUS:",
+                {
+                    monitorId:
+                        String(
+                            monitor._id
+                        ),
+
+                    error:
+                        saveError instanceof
+                        Error
+                            ? saveError.message
+                            : String(
+                                saveError
+                            )
+                }
+            );
+        }
 
         return {
             success: false,
             changed: false,
             isFirstCheck: false,
             error:
-                monitor.lastError
+                errorMessage
         };
     }
+}
+
+function inspectElementSelector(
+    html,
+    selector
+) {
+    let $;
+
+    try {
+        $ = cheerio.load(html);
+    } catch (error) {
+        console.error(
+            "Unable to parse fetched HTML:",
+            error
+        );
+
+        return {
+            valid: true,
+            found: false,
+            matchCount: 0,
+            tagName: null,
+            textLength: 0,
+            preview: "",
+            attributeText: ""
+        };
+    }
+
+    let matches;
+
+    try {
+        matches = $(selector);
+    } catch {
+        return {
+            valid: false,
+            found: false,
+            matchCount: 0,
+            tagName: null,
+            textLength: 0,
+            preview: "",
+            attributeText: ""
+        };
+    }
+
+    const matchCount =
+        matches.length;
+
+    if (!matchCount) {
+        return {
+            valid: true,
+            found: false,
+            matchCount: 0,
+            tagName: null,
+            textLength: 0,
+            preview: "",
+            attributeText: ""
+        };
+    }
+
+    const firstMatch =
+        matches.first();
+
+    const textContent =
+        normalizeInspectionText(
+            firstMatch.text()
+        );
+
+    const attributeText =
+        normalizeInspectionText(
+            firstMatch.attr(
+                "value"
+            ) ||
+            firstMatch.attr(
+                "placeholder"
+            ) ||
+            firstMatch.attr(
+                "alt"
+            ) ||
+            firstMatch.attr(
+                "aria-label"
+            ) ||
+            firstMatch.attr(
+                "title"
+            ) ||
+            ""
+        );
+
+    const combinedText =
+        textContent ||
+        attributeText;
+
+    return {
+        valid: true,
+        found: true,
+        matchCount,
+
+        tagName:
+            firstMatch
+                .get(0)
+                ?.tagName ||
+            null,
+
+        textLength:
+            combinedText.length,
+
+        preview:
+            combinedText.slice(
+                0,
+                200
+            ),
+
+        attributeText
+    };
+}
+
+function normalizeInspectionText(
+    value
+) {
+    return String(value || "")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function createHtmlTextPreview(
+    html,
+    maxLength = 500
+) {
+    try {
+        const $ =
+            cheerio.load(html);
+
+        $(
+            "script, style, noscript, svg"
+        ).remove();
+
+        return normalizeInspectionText(
+            $("body").text()
+        ).slice(
+            0,
+            maxLength
+        );
+    } catch {
+        return String(html || "")
+            .replace(
+                /<script\b[^>]*>[\s\S]*?<\/script>/gi,
+                " "
+            )
+            .replace(
+                /<style\b[^>]*>[\s\S]*?<\/style>/gi,
+                " "
+            )
+            .replace(
+                /<[^>]+>/g,
+                " "
+            )
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(
+                0,
+                maxLength
+            );
+    }
+}
+
+function isLikelyAuthenticationUrl(
+    url
+) {
+    try {
+        const parsed =
+            new URL(url);
+
+        const value =
+            `${parsed.hostname}${parsed.pathname}`
+                .toLowerCase();
+
+        const authenticationTerms = [
+            "login",
+            "log-in",
+            "signin",
+            "sign-in",
+            "authenticate",
+            "authentication",
+            "account/login",
+            "session/new",
+            "oauth",
+            "sso"
+        ];
+
+        return authenticationTerms.some(
+            term =>
+                value.includes(term)
+        );
+    } catch {
+        return false;
+    }
+}
+
+function isLikelyAuthenticationPage(
+    html,
+    finalUrl
+) {
+    if (
+        isLikelyAuthenticationUrl(
+            finalUrl
+        )
+    ) {
+        return true;
+    }
+
+    const pageText =
+        createHtmlTextPreview(
+            html,
+            2000
+        ).toLowerCase();
+
+    const strongSignals = [
+        "sign in to continue",
+        "log in to continue",
+        "login to continue",
+        "authentication required",
+        "please sign in",
+        "please log in"
+    ];
+
+    if (
+        strongSignals.some(
+            signal =>
+                pageText.includes(
+                    signal
+                )
+        )
+    ) {
+        return true;
+    }
+
+    /*
+     * Do not classify every page containing a login
+     * link as an authentication page. Require multiple
+     * weaker signals.
+     */
+    const weakSignals = [
+        "forgot password",
+        "enter your password",
+        "email address",
+        "remember me",
+        "create account"
+    ];
+
+    const matchingWeakSignals =
+        weakSignals.filter(
+            signal =>
+                pageText.includes(
+                    signal
+                )
+        ).length;
+
+    return matchingWeakSignals >= 3;
+}
+
+function isLikelyClientRenderedPage(
+    html
+) {
+    const normalizedHtml =
+        String(html || "")
+            .toLowerCase();
+
+    const bodyText =
+        createHtmlTextPreview(
+            html,
+            1500
+        );
+
+    const hasApplicationRoot =
+        normalizedHtml.includes(
+            'id="root"'
+        ) ||
+        normalizedHtml.includes(
+            "id='root'"
+        ) ||
+        normalizedHtml.includes(
+            'id="app"'
+        ) ||
+        normalizedHtml.includes(
+            "id='app'"
+        ) ||
+        normalizedHtml.includes(
+            'id="__next"'
+        ) ||
+        normalizedHtml.includes(
+            'id="__nuxt"'
+        );
+
+    const hasFrameworkScripts =
+        normalizedHtml.includes(
+            "_next/static"
+        ) ||
+        normalizedHtml.includes(
+            "__next_data__"
+        ) ||
+        normalizedHtml.includes(
+            "__nuxt__"
+        ) ||
+        normalizedHtml.includes(
+            "webpack"
+        ) ||
+        normalizedHtml.includes(
+            "/assets/index-"
+        ) ||
+        normalizedHtml.includes(
+            "/src/main."
+        );
+
+    const hasVeryLittleBodyText =
+        bodyText.length < 150;
+
+    return (
+        hasApplicationRoot &&
+        (
+            hasFrameworkScripts ||
+            hasVeryLittleBodyText
+        )
+    );
 }

@@ -32,6 +32,7 @@ app.get("/api/test-page", (req, res) => {
     res.send(`
         <h1>Page Monitor Test</h1>
         <p>Time: ${new Date()}</p>
+        ${process.env.NODE_ENV}
     `);
 });
 
@@ -43,5 +44,11 @@ app.use((request, response) => {
     message: "Route not found"
   });
 });
+
+// app.get('/api/config', (req, res) => {
+//   res.json({
+//     NODE_ENV: process.env.NODE_ENV,
+//   });
+// });
 
 export default app;

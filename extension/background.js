@@ -321,7 +321,7 @@ async function openMonitorDetails(monitorId) {
   }
 
   const detailsUrl = new URL(
-    chrome.runtime.getURL("details.html")
+    chrome.runtime.getURL("./ui/details.html")
   );
 
   detailsUrl.searchParams.set(
@@ -341,77 +341,77 @@ chrome.runtime.onMessage.addListener(
     sendResponse
   ) => {
     if (
-  message.type ===
-  "ELEMENT_SELECTED"
-) {
-  const selectedElement = {
-    ...message.payload,
+      message.type ===
+      "ELEMENT_SELECTED"
+    ) {
+      const selectedElement = {
+        ...message.payload,
 
-    tabId:
-      sender.tab?.id || null,
+        tabId:
+          sender.tab?.id || null,
 
-    windowId:
-      sender.tab?.windowId || null
-  };
+        windowId:
+          sender.tab?.windowId || null
+      };
 
-  chrome.storage.session
-    .set({
-      selectedElement,
+      chrome.storage.session
+        .set({
+          selectedElement,
 
-      contentSelector:
-        selectedElement.selector,
+          contentSelector:
+            selectedElement.selector,
 
-      selectionCompleted:
-        true
-    })
-    .then(async () => {
-      try {
-        await chrome.action.openPopup({
-          windowId:
-            selectedElement.windowId ||
-            undefined
+          selectionCompleted:
+            true
+        })
+        .then(async () => {
+          try {
+            await chrome.action.openPopup({
+              windowId:
+                selectedElement.windowId ||
+                undefined
+            });
+
+            sendResponse({
+              success: true
+            });
+          } catch (error) {
+            console.error(
+              "Unable to reopen popup:",
+              error
+            );
+
+            /*
+             * The selection was still saved, even if Chrome
+             * could not reopen the popup.
+             */
+            sendResponse({
+              success: true,
+              popupOpened: false,
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Selection saved, but popup could not open."
+            });
+          }
+        })
+        .catch(error => {
+          console.error(
+            "Unable to save selected element:",
+            error
+          );
+
+          sendResponse({
+            success: false,
+            message:
+              error instanceof Error
+                ? error.message
+                : "Unable to save selected element."
+          });
         });
 
-        sendResponse({
-          success: true
-        });
-      } catch (error) {
-        console.error(
-          "Unable to reopen popup:",
-          error
-        );
-
-        /*
-         * The selection was still saved, even if Chrome
-         * could not reopen the popup.
-         */
-        sendResponse({
-          success: true,
-          popupOpened: false,
-          message:
-            error instanceof Error
-              ? error.message
-              : "Selection saved, but popup could not open."
-        });
-      }
-    })
-    .catch(error => {
-      console.error(
-        "Unable to save selected element:",
-        error
-      );
-
-      sendResponse({
-        success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Unable to save selected element."
-      });
-    });
-
-  return true;
-}
+      return true;
+    }
 
     if (
       message.type ===
@@ -488,19 +488,13 @@ async function openAndHighlightElement({
         handleTabUpdated
       );
 
-      /*
-       * Give page scripts a brief opportunity to render
-       * dynamic content before searching for the element.
-       */
       setTimeout(async () => {
         try {
           const result =
             await chrome.tabs.sendMessage(
               tabId,
               {
-                type:
-                  "HIGHLIGHT_MONITORED_ELEMENT",
-
+                type: "HIGHLIGHT_MONITORED_ELEMENT",
                 selector
               }
             );

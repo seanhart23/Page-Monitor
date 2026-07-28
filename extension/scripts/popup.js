@@ -79,6 +79,7 @@ await initialize();
 
 async function initialize() {
   bindEvents();
+
   const {
     autoDetectCurrentTab = true
   } = await chrome.storage.sync.get({
@@ -88,7 +89,8 @@ async function initialize() {
   if (autoDetectCurrentTab) {
     await loadCurrentTab();
   }
-  await loadSelectedElement();
+
+  await restoreSelectedElement();
   await loadMonitors();
 }
 
@@ -341,43 +343,6 @@ async function handleWatchPage() {
       storageResult.selectedElement ||
       null;
 
-    // if (selectedElement) {
-    //   const validation =
-    //     await validateSelectedElement(
-    //       selectedElement
-    //     );
-
-    //   if (!validation?.valid) {
-    // //     elements.status.textContent =
-    // //       validation?.message ||
-    // //       "The selected element could not be found.";
-
-    // //     showToast(
-    // //       validation?.message ||
-    // //       "Please select the element again.",
-    // //       true
-    // //     );
-
-    // //     return;
-    // //   }
-
-    //   /*
-    //    * Refresh the stored preview text in case the element
-    //    * changed between selection and saving.
-    //    */
-    //   selectedElement.tagName =
-    //     validation.tagName ||
-    //     selectedElement.tagName;
-
-    //   selectedElement.text =
-    //     validation.text ||
-    //     selectedElement.text;
-    // }
-    console.log(
-      "Selected element at save time:",
-      selectedElement
-    );
-
     const {
       defaultCheckInterval = 30
     } = await chrome.storage.sync.get({
@@ -422,11 +387,6 @@ async function handleWatchPage() {
           }
           : null
     };
-
-    console.log(
-      "CREATE MONITOR PAYLOAD:",
-      payload
-    );
 
     await createMonitor(payload);
 
@@ -862,11 +822,6 @@ async function loadSelectedElement() {
   const storedElement =
     result.selectedElement;
 
-  console.log(
-    "Selected element from storage:",
-    storedElement
-  );
-
   const belongsToCurrentTab =
     storedElement &&
     (
@@ -879,13 +834,10 @@ async function loadSelectedElement() {
       ? storedElement
       : null;
 
-  const preview =
-    elements.selectedElementPreview;
+  const preview = elements.selectedElementPreview;
 
   if (!preview) {
-    console.error(
-      'Missing HTML element with id="selectedElementPreview"'
-    );
+    console.error('Missing HTML element with id="selectedElementPreview"');
     return;
   }
 
@@ -898,16 +850,10 @@ async function loadSelectedElement() {
 
   preview.innerHTML = `
     <strong>Selected element</strong>
-    <code>${escapeHtml(
-    state.selectedElement.selector
-  )}</code>
+
     <div>
-      ${escapeHtml(
-    state.selectedElement.text ||
-    "No visible text found"
-  )}
-    </div>
-  `;
+      ${escapeHtml(state.selectedElement.text || "No visible text found")}
+    </div>`;
 
   preview.hidden = false;
   updateWatchButton();
@@ -1061,46 +1007,27 @@ async function handleHighlightElement() {
 //     }
 //   }
 // }
-
 async function restoreSelectedElement() {
   try {
     const {
       selectedElement,
-      contentSelector,
       selectionCompleted
     } =
       await chrome.storage.session.get([
         "selectedElement",
-        "contentSelector",
         "selectionCompleted"
       ]);
 
-    if (
-      !selectionCompleted ||
-      !selectedElement
-    ) {
-      return;
-    }
-
     state.selectedElement =
-      selectedElement;
+      selectedElement || null;
 
-    state.contentSelector =
-      contentSelector ||
-      selectedElement.selector ||
-      null;
+    await loadSelectedElement();
 
-    renderSelectedElement(
-      selectedElement
-    );
-
-    /*
-     * Clear only the completion flag so reopening the
-     * popup later does not repeatedly trigger selection UI.
-     */
-    await chrome.storage.session.remove(
-      "selectionCompleted"
-    );
+    if (selectionCompleted) {
+      await chrome.storage.session.remove(
+        "selectionCompleted"
+      );
+    }
   } catch (error) {
     console.error(
       "Unable to restore selected element:",

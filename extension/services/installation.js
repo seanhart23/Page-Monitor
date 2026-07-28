@@ -1,16 +1,13 @@
 import { API_BASE_URL, STORAGE_KEY } from "../config.js";
 
 export async function getInstallationCredentials() {
-    const result = await chrome.storage.local.get(
-        STORAGE_KEY
-    );
-
+    const result = await chrome.storage.local.get(STORAGE_KEY);
     return result[STORAGE_KEY] ?? null;
 }
 
 export async function ensureInstallationCredentials() {
     const existingCredentials = await getInstallationCredentials();
-
+    
     if (existingCredentials) {
         return existingCredentials;
     }
@@ -29,16 +26,13 @@ export async function ensureInstallationCredentials() {
 
     if (!response.ok) {
         throw new Error(
-            result.message ||
-                "Unable to register installation"
+            result.message || "Unable to register installation"
         );
     }
 
     const credentials = result.data;
 
-    await chrome.storage.local.set({
-        [STORAGE_KEY]: credentials
-    });
+    await chrome.storage.local.set({ [STORAGE_KEY]: credentials });
 
     return credentials;
 }

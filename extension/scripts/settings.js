@@ -1,12 +1,11 @@
 import { getMonitors } from "../services/api.js";
+import { API_BASE_URL } from "../config.js";
 
 const DEFAULT_SETTINGS = Object.freeze({
     notificationsEnabled: true,
     defaultCheckInterval: 30,
     autoDetectCurrentTab: true
 });
-
-import { API_BASE_URL } from "../config.js";
 
 const elements = {
     notificationsEnabled:
@@ -171,8 +170,6 @@ async function sendTestNotification() {
     const permissionLevel =
       await chrome.notifications.getPermissionLevel();
 
-    console.log("Notification permission:", permissionLevel);
-
     if (permissionLevel !== "granted") {
       throw new Error(
         "Chrome notification permission is not granted."
@@ -192,11 +189,6 @@ async function sendTestNotification() {
           priority: 2
         }
       );
-
-    console.log(
-      "Test notification created:",
-      notificationId
-    );
 
     showInlineStatus(
       elements.notificationStatus,

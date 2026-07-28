@@ -1,9 +1,8 @@
+import "dotenv/config";
 import { Monitor } from "../models/monitor.js";
 import { ChangeEvent } from "../models/changeEvent.js";
 import { checkMonitor } from "../services/monitorChecker.js";
 import { normalizeUrl } from "../utils/normalizeUrl.js";
-
-const DEFAULT_MAX_MONITORS = 25;
 
 export async function getMonitors(request, response) {
   try {
@@ -54,13 +53,6 @@ export async function createMonitor(request, response) {
       selectedElement = null,
       ignoreSelectors = []
     } = request.body;
-
-    console.log("ELEMENT MONITOR CREATE DATA:", {
-      monitorType,
-      contentSelector,
-      comparisonMode,
-      selectedElement
-    });
 
     if (!url) {
       return response.status(400).json({
@@ -121,15 +113,6 @@ export async function createMonitor(request, response) {
         message: "A valid URL is required"
       });
     }
-
-    console.log("Creating monitor:", {
-      installationId,
-      normalizedUrl,
-      monitorType,
-      contentSelector:
-        effectiveSelector,
-      selectedElement
-    });
 
     const duplicateQuery = {
       installationId,
@@ -211,14 +194,6 @@ export async function createMonitor(request, response) {
           )
             ? ignoreSelectors
             : []
-      });
-
-      console.log("SAVED MONITOR:", {
-        id: monitor._id,
-        monitorType: monitor.monitorType,
-        contentSelector: monitor.contentSelector,
-        comparisonMode: monitor.comparisonMode,
-        selectedElement: monitor.selectedElement
       });
 
     return response.status(201).json({
