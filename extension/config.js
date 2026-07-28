@@ -1,5 +1,5 @@
 
-const DEV = false;
+const DEV = true;
 export const API_BASE_URL = DEV ? "http://localhost:3000/api" : "https://smart-page-monitor-api.onrender.com/api";
 export const NOTIFICATION_ALARM = "check-pending-notifications";
 export const NOTIFICATION_DATA_KEY = "pageMonitorNotificationData";
