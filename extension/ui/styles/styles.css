@@ -1003,3 +1003,23 @@ svg {
 .hidden {
   display: none !important;
 }
+
+.detail-footer {
+    margin-top: 5px;
+    text-align: right;
+}
+
+.link-button {
+    background: none;
+    border: none;
+    color: #2563eb;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 0;
+}
+/* 
+.link-button:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+} */

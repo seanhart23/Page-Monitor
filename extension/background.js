@@ -314,7 +314,7 @@ chrome.notifications.onButtonClicked.addListener(
   }
 );
 
-async function openMonitorDetails(monitorId) {
+export async function openMonitorDetails(monitorId) {
   if (!monitorId) {
     console.error("Cannot open details without a monitor ID.");
     return;
@@ -381,10 +381,6 @@ chrome.runtime.onMessage.addListener(
               error
             );
 
-            /*
-             * The selection was still saved, even if Chrome
-             * could not reopen the popup.
-             */
             sendResponse({
               success: true,
               popupOpened: false,

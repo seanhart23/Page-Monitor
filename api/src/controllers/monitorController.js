@@ -30,8 +30,7 @@ export async function getMonitors(request, response) {
 
 export async function createMonitor(request, response) {
   try {
-    const installationId =
-      request.installation.installationId;
+    const installationId = request.installation.installationId;
 
     const maxMonitors =
       Number(
@@ -83,10 +82,7 @@ export async function createMonitor(request, response) {
       });
     }
 
-    const effectiveSelector =
-      monitorType === "element"
-        ? contentSelector?.trim()
-        : "body";
+    const effectiveSelector = monitorType === "element" ? contentSelector?.trim() : "body";
 
     if (
       monitorType === "element" &&

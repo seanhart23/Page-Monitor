@@ -1,4 +1,4 @@
-import { MAX_MONITORS, PREVIEW_MAX_LENGTH } from "../config.js";
+import { MAX_MONITORS, PREVIEW_MAX_LENGTH, STORAGE_KEY } from "../config.js";
 import {
   createMonitor,
   getMonitors,
@@ -6,6 +6,7 @@ import {
   checkMonitorNow,
   getMonitorHistory
 } from "../services/api.js";
+import { openMonitorDetails } from "../background.js";
 import { validateUrl } from "../utils/urlValidator.js";
 
 const state = {
@@ -438,6 +439,12 @@ async function openDetail(monitor) {
 
   state.selectedMonitor = monitor;
   renderDetail(monitor);
+
+  const viewBtn = document.getElementById("viewFullDetailsBtn");
+
+  viewBtn.onclick = () => {
+    openMonitorDetails(monitor._id)
+  };
 
   elements.shell.classList.add("detail-open");
   elements.detailScreen.setAttribute("aria-hidden", "false");
@@ -927,86 +934,7 @@ async function handleHighlightElement() {
     );
   }
 }
-// async function validateSelectedElement({
-//   selector,
-//   tabId
-// }) {
-//   if (!selector?.trim()) {
-//     return {
-//       valid: false,
-//       message:
-//         "No CSS selector was provided."
-//     };
-//   }
 
-//   const targetTabId =
-//     tabId || state.tab?.id;
-
-//   if (!targetTabId) {
-//     return {
-//       valid: false,
-//       message:
-//         "The selected webpage is no longer available."
-//     };
-//   }
-
-//   const message = {
-//     type:
-//       "VALIDATE_SELECTOR",
-
-//     selector:
-//       selector.trim()
-//   };
-
-//   try {
-//     return await chrome.tabs.sendMessage(
-//       targetTabId,
-//       message
-//     );
-//   } catch (firstError) {
-//     console.warn(
-//       "Validation listener unavailable. Injecting content script.",
-//       firstError
-//     );
-
-//     try {
-//       await chrome.scripting.executeScript({
-//         target: {
-//           tabId:
-//             targetTabId
-//         },
-
-//         files: [
-//           "content/elementSelector.js"
-//         ]
-//       });
-
-//       return await chrome.tabs.sendMessage(
-//         targetTabId,
-//         message
-//       );
-//     } catch (secondError) {
-//       console.error(
-//         "Unable to validate selected element:",
-//         {
-//           firstError,
-//           secondError,
-//           tabId:
-//             targetTabId,
-//           selector
-//         }
-//       );
-
-//       return {
-//         valid: false,
-//         message:
-//           secondError instanceof Error
-//             ? secondError.message
-//             : "Unable to validate the selected element."
-//       };
-//     }
-//   }
-// }
 async function restoreSelectedElement() {
   try {
     const {
@@ -1035,3 +963,4 @@ async function restoreSelectedElement() {
     );
   }
 }
+

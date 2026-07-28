@@ -1,14 +1,9 @@
 import { Monitor } from "../models/monitor.js";
 import { ChangeEvent } from "../models/changeEvent.js";
 
-export async function getPendingNotifications(
-    request,
-    response
-) {
+export async function getPendingNotifications(request, response) {
     try {
-        const installationId =
-            request.installation.installationId;
-
+        const installationId = request.installation.installationId;
         const monitors = await Monitor.find({
             installationId,
             notificationPending: true
