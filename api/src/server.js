@@ -13,8 +13,8 @@ async function startServer() {
   startMonitorScheduler();
 
   app.listen(port, () => {
-    console.log(`API running in ${environment} at ${url}`);
-  });
+    console.log(`API running: { environment: ${environment}, url: ${url} }`);
+  })
 }
 
 startServer();

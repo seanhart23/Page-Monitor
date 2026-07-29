@@ -92,20 +92,24 @@ button {
     gap: 15px;
 }
 
+.brand img {
+    height: 50px;
+}
+
 .brand-icon {
     display: grid;
     width: 54px;
     height: 54px;
     place-items: center;
     border-radius: 16px;
-    background:
+    /* background:
         linear-gradient(
             145deg,
             #3b82f6,
             #244bd8
         );
     box-shadow:
-        0 10px 22px rgba(37, 99, 235, 0.25);
+        0 10px 22px rgba(37, 99, 235, 0.25); */
 }
 
 .brand-icon svg {

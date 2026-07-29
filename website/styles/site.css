@@ -96,7 +96,7 @@ img {
   height: 34px;
   place-items: center;
   border-radius: 10px;
-  background: var(--primary);
+  /* background: var(--primary); */
   color: white;
   font-size: 1.1rem;
 }
@@ -250,7 +250,7 @@ img {
   height: 42px;
   place-items: center;
   border-radius: 13px;
-  background: var(--primary);
+  /* background: var(--primary); */
   color: white !important;
 }
 

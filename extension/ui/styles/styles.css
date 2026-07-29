@@ -87,14 +87,16 @@ svg {
   gap: 12px;
 }
 
+.brand img {
+  height: 50px;
+}
+
 .brand-mark {
   display: grid;
   width: 46px;
   height: 46px;
   place-items: center;
   border-radius: 14px;
-  background: linear-gradient(145deg, #3b82f6, #244bd8);
-  box-shadow: 0 10px 24px rgba(37, 99, 235, .24);
 }
 
 .brand-mark svg {
@@ -1018,8 +1020,3 @@ svg {
     font-weight: 600;
     padding: 6px 0;
 }
-/* 
-.link-button:hover {
-    color: #1d4ed8;
-    text-decoration: underline;
-} */

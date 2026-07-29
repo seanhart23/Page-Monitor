@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
     <div class="container header-content">
       <a class="brand" href="${BASE_URL}${INDEX_URL}" class="index-url">
-        <span class="brand-icon"><img src="./icons/icon.png"></span>
+        <span class="brand-icon"><img src="./icons/chrome_bubble_128.png"></span>
         <span>Smart Page Monitor</span>
       </a>
 

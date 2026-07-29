@@ -37,9 +37,9 @@
   },
   "action": {
     "default_popup": "ui/popup.html",
-    "default_icon": "ui/icons/icon.png"
+    "default_icon": "ui/icons/chrome_bubble_128.png"
   },
   "icons": {
-    "128": "ui/icons/icon.png"
+    "128": "ui/icons/chrome_bubble_128.png"
   }
 }
