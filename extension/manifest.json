@@ -38,6 +38,11 @@
     "default_icon": "ui/icons/chrome_bubble_128.png"
   },
   "icons": {
-    "128": "ui/icons/chrome_bubble_128.png"
+    "16": "ui/icons/chrome_bubble_16.png",
+    "32": "ui/icons/chrome_bubble_32.png",
+    "48": "ui/icons/chrome_bubble_48.png",
+    "128": "ui/icons/chrome_bubble_128.png",
+    "256": "ui/icons/chrome_bubble_256.png",
+    "512": "ui/icons/chrome_bubble_512.png"
   }
 }

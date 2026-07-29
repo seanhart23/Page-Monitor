@@ -6,7 +6,6 @@ import {
   checkMonitorNow,
   getMonitorHistory
 } from "../services/api.js";
-import { openMonitorDetails } from "../background.js";
 import { validateUrl } from "../utils/urlValidator.js";
 
 const state = {
@@ -325,6 +324,34 @@ function getMonitorStatus(monitor) {
     return { label: "Pending", className: "status-pending", meta: "Waiting for first check" };
   }
   return { label: "OK", className: "status-ok", meta: `Checked ${formatRelativeTime(monitor.lastCheckedAt)}` };
+}
+
+async function openMonitorDetails(
+  monitorId
+) {
+  if (!monitorId) {
+    console.error(
+      "Cannot open details without a monitor ID."
+    );
+
+    return;
+  }
+
+  const detailsUrl =
+    new URL(
+      chrome.runtime.getURL(
+        "ui/details.html"
+      )
+    );
+
+  detailsUrl.searchParams.set(
+    "monitorId",
+    String(monitorId)
+  );
+
+  await chrome.tabs.create({
+    url: detailsUrl.toString()
+  });
 }
 
 async function handleWatchPage() {
