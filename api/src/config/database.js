@@ -8,7 +8,7 @@ export async function connectDatabase() {
       );
 
   console.log("MongoDB connected:", {
-  environment: process.env.NODE_ENV,
-  database: connection.connection.name
+    environment: process.env.NODE_ENV,
+    database: connection.connection.name
   });
 }
