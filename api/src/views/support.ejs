@@ -1,0 +1,175 @@
+<%- include('./partials/header.ejs', { pageTitle: "Support | Smart Page Monitor" }) -%>
+  <main>
+    <section class="page-hero">
+      <div class="container narrow-container">
+        <p class="eyebrow">Help center</p>
+        <h1>Smart Page Monitor Support</h1>
+        <p>
+          Find answers to common questions and troubleshooting
+          steps for the Smart Page Monitor extension.
+        </p>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container support-layout">
+        <div class="support-content">
+          <article class="support-card">
+            <h2>Getting started</h2>
+            <ol>
+              <li>
+                Open the webpage you want Smart Page Monitor to
+                watch.
+              </li>
+              <li>
+                Select the Smart Page Monitor icon in your
+                browser toolbar.
+              </li>
+              <li>
+                Select the button to begin monitoring the
+                current page.
+              </li>
+              <li>
+                The page will appear in your monitor list.
+              </li>
+            </ol>
+          </article>
+          <article class="support-card">
+            <h2>Notifications are not appearing</h2>
+            <p>Check the following:</p>
+            <ul>
+              <li>
+                Notifications are enabled in Smart Page Monitor
+                settings.
+              </li>
+
+              <li>
+                The extension has the Chrome
+                <strong>notifications</strong> permission.
+              </li>
+
+              <li>
+                Chrome is allowed to send notifications in your
+                operating-system settings.
+              </li>
+
+              <li>
+                Do Not Disturb or Focus Assist is not hiding
+                notifications.
+              </li>
+
+              <li>
+                The monitored page has actually changed since
+                its previous successful check.
+              </li>
+            </ul>
+          </article>
+
+          <article class="support-card">
+            <h2>A page is not being detected correctly</h2>
+
+            <p>
+              Some webpages load content dynamically, require a
+              login, use anti-bot protection, or display
+              different information for different visitors.
+              These pages may not be monitored reliably.
+            </p>
+
+            <p>
+              Try checking the monitor manually. If the problem
+              continues, contact support and include the webpage
+              URL and the error displayed by the extension.
+            </p>
+          </article>
+
+          <article class="support-card">
+            <h2>How often are pages checked?</h2>
+
+            <p>
+              New monitors use the default check interval chosen
+              in the extension settings. The actual check time
+              may vary slightly because of server load, browser
+              availability, or website response time.
+            </p>
+
+            <p>
+              Changing the default interval affects newly
+              created monitors unless the extension specifically
+              provides a way to edit existing monitors.
+            </p>
+          </article>
+
+          <article class="support-card">
+            <h2>How do I delete a monitor?</h2>
+
+            <p>
+              Open Smart Page Monitor, select the monitor from
+              the list, and choose the delete option on its
+              detail screen.
+            </p>
+          </article>
+
+          <article class="support-card">
+            <h2>How do I remove the extension?</h2>
+
+            <ol>
+              <li>Open Chrome.</li>
+              <li>Go to <code>chrome://extensions</code>.</li>
+              <li>Find Smart Page Monitor.</li>
+              <li>Select <strong>Remove</strong>.</li>
+            </ol>
+          </article>
+
+          <article class="support-card">
+            <h2>Report a problem</h2>
+
+            <p>
+              Send an email to:
+            </p>
+
+            <p>
+              <a href="mailto:seanhart23@gmail.com">
+                seanhart23@gmail.com
+              </a>
+            </p>
+
+            <p>Please include:</p>
+
+            <ul>
+              <li>A description of the problem</li>
+              <li>The webpage URL, when appropriate</li>
+              <li>The error message you received</li>
+              <li>Your Chrome version</li>
+              <li>Your Smart Page Monitor version</li>
+              <li>Steps that reproduce the problem</li>
+            </ul>
+
+            <p>
+              Do not send passwords, payment information, or
+              other sensitive data.
+            </p>
+          </article>
+        </div>
+
+        <aside class="contact-card">
+          <p class="eyebrow">Contact</p>
+          <h2>Still need help?</h2>
+
+          <p>
+            Contact the Smart Page Monitor support team by
+            email.
+          </p>
+
+          <a class="button primary-button full-width-button"
+            href="mailto:seanhart23@gmail.com?subject=Smart%20Page%20Monitor%20Support">
+            Email support
+          </a>
+
+          <p class="small-copy">
+            Include the extension version and any error message
+            you received.
+          </p>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <%- include('./partials/footer.ejs') -%>
