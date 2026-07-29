@@ -9,6 +9,10 @@ import {
   acknowledgeNotification
 } from "./services/api.js";
 
+import {
+  ensureInstallationCredentials
+} from "./services/installation.js";
+
 function truncateText(value, maxLength = PREVIEW_MAX_LENGTH) {
   const text = String(value || "")
     .replace(/\s+/g, " ")
@@ -148,11 +152,50 @@ async function showChangeNotification(monitor, change) {
   );
 }
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async details => {
+  try {
+    chrome.alarms.create(NOTIFICATION_ALARM, {
+      periodInMinutes: 1
+    });
 
+    const credentials =
+      await ensureInstallationCredentials();
+
+    console.log(
+      "Installation credentials ready:",
+      {
+        reason: details.reason,
+        installationId:
+          credentials.installationId
+      }
+    );
+  } catch (error) {
+    console.error(
+      "Unable to initialize extension installation:",
+      error
+    );
+  }
+});
+
+chrome.runtime.onStartup.addListener(async () => {
   chrome.alarms.create(NOTIFICATION_ALARM, {
     periodInMinutes: 1
   });
+
+  try {
+    const credentials =
+      await ensureInstallationCredentials();
+
+    console.log(
+      "Installation credentials verified:",
+      credentials.installationId
+    );
+  } catch (error) {
+    console.error(
+      "Unable to verify installation credentials:",
+      error
+    );
+  }
 });
 
 chrome.runtime.onStartup.addListener(() => {

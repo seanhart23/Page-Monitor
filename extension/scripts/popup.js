@@ -54,25 +54,11 @@ const elements = {
   selectElementButton: document.getElementById("selectElementButton"),
   selectedElementPreview: document.getElementById("selectedElementPreview"),
   toast: document.getElementById("toast"),
-  detailMonitorType:
-    document.getElementById(
-      "detail-monitor-type"
-    ),
-
-  detailMonitorDescription:
-    document.getElementById(
-      "detail-monitor-description"
-    ),
-
-  detailMonitorSelector:
-    document.getElementById(
-      "detail-monitor-selector"
-    ),
-
-  highlightElementButton:
-    document.getElementById(
-      "highlight-element-button"
-    ),
+  detailMonitorType: document.getElementById("detail-monitor-type"),
+  detailMonitorDescription: document.getElementById("detail-monitor-description"),
+  detailMonitorSelector: document.getElementById("detail-monitor-selector"),
+  highlightElementButton: document.getElementById("highlight-element-button"),
+  viewBtn: document.getElementById("viewFullDetailsBtn")
 };
 
 await initialize();
@@ -96,14 +82,8 @@ async function initialize() {
 
 function bindEvents() {
   elements.watchButton.addEventListener("click", handleWatchPage);
-  elements.selectElementButton?.addEventListener(
-    "click",
-    handleSelectElement
-  );
-  elements.highlightElementButton?.addEventListener(
-    "click",
-    handleHighlightElement
-  );
+  elements.selectElementButton?.addEventListener("click", handleSelectElement);
+  elements.highlightElementButton?.addEventListener("click", handleHighlightElement);
   elements.search.addEventListener("input", event => {
     state.search = event.target.value.trim().toLowerCase();
     renderMonitorList();
@@ -455,41 +435,6 @@ async function handleWatchPage() {
   }
 }
 
-async function openDetail(monitor) {
-  if (!monitor?._id) {
-    console.error(
-      "Cannot open monitor details: invalid monitor.",
-      monitor
-    );
-    return;
-  }
-
-  state.selectedMonitor = monitor;
-  renderDetail(monitor);
-
-  const viewBtn = document.getElementById("viewFullDetailsBtn");
-
-  viewBtn.onclick = () => {
-    openMonitorDetails(monitor._id)
-  };
-
-  elements.shell.classList.add("detail-open");
-  elements.detailScreen.setAttribute("aria-hidden", "false");
-  elements.detailContent.setAttribute("aria-hidden", "false");
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      resetDetailScroll();
-
-      elements.backButton.focus({
-        preventScroll: true
-      });
-    });
-  });
-
-  await loadHistory(monitor._id);
-}
-
 function resetDetailScroll() {
   elements.detailContent.scrollTop = 0;
   elements.detailScreen.scrollTop = 0;
@@ -629,14 +574,8 @@ function renderHistoryEvent(event) {
 }
 
 async function loadHistory(monitorId) {
-  elements.historyLoading.classList.remove(
-    "hidden"
-  );
-
-  elements.historyEmpty.classList.add(
-    "hidden"
-  );
-
+  elements.historyLoading.classList.remove("hidden");
+  elements.historyEmpty.classList.add("hidden");
   elements.historyList.innerHTML = "";
 
   try {
@@ -673,6 +612,40 @@ async function loadHistory(monitorId) {
     );
   }
 }
+
+async function openDetail(monitor) {
+  if (!monitor?._id) {
+    console.error(
+      "Cannot open monitor details: invalid monitor.",
+      monitor
+    );
+    return;
+  }
+
+  state.selectedMonitor = monitor;
+  renderDetail(monitor);
+
+  elements.viewBtn.onclick = () => {
+    openMonitorDetails(monitor._id)
+  };
+
+  elements.shell.classList.add("detail-open");
+  elements.detailScreen.setAttribute("aria-hidden", "false");
+  elements.detailContent.setAttribute("aria-hidden", "false");
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      resetDetailScroll();
+
+      elements.backButton.focus({
+        preventScroll: true
+      });
+    });
+  });
+
+  await loadHistory(monitor._id);
+}
+
 
 async function handleCheckNow() {
   const monitor = state.selectedMonitor;
