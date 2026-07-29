@@ -1,4 +1,4 @@
-import { MAX_MONITORS, PREVIEW_MAX_LENGTH, STORAGE_KEY } from "../config.js";
+import { MAX_MONITORS, PREVIEW_MAX_LENGTH } from "../config.js";
 import {
   createMonitor,
   getMonitors,
