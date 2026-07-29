@@ -24,7 +24,7 @@ app.use("/api", changeHistoryRoutes);
 app.use("/api/monitors", monitorRoutes);
 app.use("/api/installations", installationRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/website", websiteRoutes);
+app.use("/", websiteRoutes);
 
 app.get("/api/health", (request, response) => {
   response.json({
