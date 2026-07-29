@@ -79,3 +79,4 @@ ehthumbs.db
 # ==========================
 *.pid
 *.seed
+extension/config.js
