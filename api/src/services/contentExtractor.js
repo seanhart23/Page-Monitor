@@ -8,11 +8,9 @@ const DEFAULT_IGNORED_SELECTORS = [
     "svg",
     "canvas",
     "iframe",
-
     // Usually repeated site furniture
     "nav",
     "footer",
-
     // Common noisy or hidden elements
     "[hidden]",
     '[aria-hidden="true"]',
@@ -35,32 +33,21 @@ const DEFAULT_IGNORED_SELECTORS = [
  * @param {string[]} options.ignoreSelectors - Additional elements to remove.
  * @returns {string}
  */
-export function extractMeaningfulContent(
-    html,
-    {
-        contentSelector = "body",
-        ignoreSelectors = []
-    } = {}
-) {
+
+export function extractMeaningfulContent(html, { contentSelector = "body", ignoreSelectors = [] } = {}) {
     if (typeof html !== "string" || html.trim() === "") {
         throw new TypeError("HTML must be a non-empty string.");
     }
 
     const $ = cheerio.load(html);
-
-    const selectorsToRemove = [
-        ...DEFAULT_IGNORED_SELECTORS,
-        ...ignoreSelectors
-    ];
+    const selectorsToRemove = [ ...DEFAULT_IGNORED_SELECTORS, ...ignoreSelectors ];
 
     $(selectorsToRemove.join(",")).remove();
 
     const contentElement = $(contentSelector).first();
 
     if (contentElement.length === 0) {
-        throw new Error(
-            `Content selector did not match anything: ${contentSelector}`
-        );
+        throw new Error(`Content selector did not match anything: ${contentSelector}`);
     }
 
     const extractedText = contentElement
@@ -83,7 +70,7 @@ export function extractMeaningfulContent(
 
 export function normalizeText(text) {
     return text
-        .replace(/\u00a0/g, " ") // Non-breaking spaces
-        .replace(/\s+/g, " ")    // Newlines, tabs, repeated spaces
+        .replace(/\u00a0/g, " ")
+        .replace(/\s+/g, " ")
         .trim();
 }

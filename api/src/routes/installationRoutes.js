@@ -1,7 +1,5 @@
 import express from "express";
-import {
-    registerInstallation
-} from "../controllers/installationController.js";
+import { registerInstallation } from "../controllers/installationController.js";
 
 const router = express.Router();
 

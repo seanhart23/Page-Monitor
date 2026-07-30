@@ -1,11 +1,5 @@
-const DEFAULT_PREVIEW_WORDS = 60;
-const DEFAULT_CONTEXT_WORDS = 8;
+import "dotenv/config";
 
-export const MAX_STORED_CONTENT_LENGTH = 100_000;
-
-/**
- * Cleans page text before comparing it.
- */
 export function normalizePageText(value = "") {
     return String(value)
         .replace(/\u00a0/g, " ")
@@ -13,43 +7,24 @@ export function normalizePageText(value = "") {
         .trim();
 }
 
-/**
- * Limits how much page text is saved in MongoDB.
- */
 export function limitStoredContent(content = "") {
     const safeContent = String(content);
 
-    if (
-        safeContent.length <=
-        MAX_STORED_CONTENT_LENGTH
-    ) {
+    if (safeContent.length <= process.env.MAX_STORED_CONTENT_LENGTH) {
         return safeContent;
     }
 
-    return safeContent.slice(
-        0,
-        MAX_STORED_CONTENT_LENGTH
-    );
+    return safeContent.slice(0, process.env.MAX_STORED_CONTENT_LENGTH);
 }
 
-/**
- * Creates a short before-and-after preview.
- */
-export function createChangePreview(
-    previousContent,
-    currentContent,
-    options = {}
-) {
+export function createChangePreview(previousContent, currentContent, options = {}) {
     const {
-        maxWords = DEFAULT_PREVIEW_WORDS,
-        contextWords = DEFAULT_CONTEXT_WORDS
+        maxWords = process.env.DEFAULT_PREVIEW_WORDS,
+        contextWords = process.env.DEFAULT_CONTEXT_WORDS
     } = options;
 
-    const normalizedPrevious =
-        normalizePageText(previousContent);
-
-    const normalizedCurrent =
-        normalizePageText(currentContent);
+    const normalizedPrevious = normalizePageText(previousContent);
+    const normalizedCurrent = normalizePageText(currentContent);
 
     if (!normalizedPrevious && !normalizedCurrent) {
         return createEmptyPreview();
@@ -59,11 +34,9 @@ export function createChangePreview(
         return createEmptyPreview();
     }
 
-    const previousWords =
-        splitIntoWords(normalizedPrevious);
+    const previousWords = splitIntoWords(normalizedPrevious);
 
-    const currentWords =
-        splitIntoWords(normalizedCurrent);
+    const currentWords = splitIntoWords(normalizedCurrent);
 
     let startIndex = 0;
 
@@ -76,11 +49,8 @@ export function createChangePreview(
         startIndex += 1;
     }
 
-    let previousEndIndex =
-        previousWords.length - 1;
-
-    let currentEndIndex =
-        currentWords.length - 1;
+    let previousEndIndex = previousWords.length - 1;
+    let currentEndIndex = currentWords.length - 1;
 
     while (
         previousEndIndex >= startIndex &&
@@ -92,30 +62,10 @@ export function createChangePreview(
         currentEndIndex -= 1;
     }
 
-    const removedWords = previousWords.slice(
-        startIndex,
-        previousEndIndex + 1
-    );
-
-    const addedWords = currentWords.slice(
-        startIndex,
-        currentEndIndex + 1
-    );
-
-    const beforeContextWords =
-        currentWords.slice(
-            Math.max(
-                0,
-                startIndex - contextWords
-            ),
-            startIndex
-        );
-
-    const afterContextWords =
-        currentWords.slice(
-            currentEndIndex + 1,
-            currentEndIndex + 1 + contextWords
-        );
+    const removedWords = previousWords.slice(startIndex, previousEndIndex + 1);
+    const addedWords = currentWords.slice(startIndex, currentEndIndex + 1);
+    const beforeContextWords = currentWords.slice(Math.max(0, startIndex - contextWords), startIndex);
+    const afterContextWords = currentWords.slice(currentEndIndex + 1, currentEndIndex + 1 + contextWords);
 
     return {
         changed: true,
@@ -171,21 +121,13 @@ function truncateWords(words, maxWords) {
         return "";
     }
 
-    const visibleWords =
-        words.slice(0, maxWords);
+    const visibleWords = words.slice(0, maxWords);
+    const wasTruncated = words.length > maxWords;
 
-    const wasTruncated =
-        words.length > maxWords;
-
-    return `${visibleWords.join(" ")}${
-        wasTruncated ? "…" : ""
-    }`;
+    return `${visibleWords.join(" ")}${ wasTruncated ? "…" : ""}`;
 }
 
-function determineChangeType(
-    removedWords,
-    addedWords
-) {
+function determineChangeType(removedWords, addedWords) {
     if (
         removedWords.length > 0 &&
         addedWords.length > 0
@@ -204,10 +146,7 @@ function determineChangeType(
     return "none";
 }
 
-function createSummary(
-    removedWordCount,
-    addedWordCount
-) {
+function createSummary(removedWordCount, addedWordCount) {
     if (
         removedWordCount > 0 &&
         addedWordCount > 0

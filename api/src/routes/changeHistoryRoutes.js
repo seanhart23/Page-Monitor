@@ -1,5 +1,4 @@
 import express from "express";
-
 import { getMonitorHistory } from "../controllers/changeHistoryController.js";
 import { authenticateInstallation } from "../middleware/authenticateInstallation.js";
 

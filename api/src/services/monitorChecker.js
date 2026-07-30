@@ -1,51 +1,28 @@
 import * as cheerio from "cheerio";
-
-import {
-    ChangeEvent
-} from "../models/changeEvent.js";
-
-import {
-    extractMeaningfulContent
-} from "./contentExtractor.js";
-
-import {
-    createFingerprint
-} from "./fingerprint.js";
-
+import { ChangeEvent } from "../models/changeEvent.js";
+import { extractMeaningfulContent } from "./contentExtractor.js";
+import { createFingerprint } from "./fingerprint.js";
 import {
     normalizePageText,
     limitStoredContent,
     createChangePreview
 } from "../utils/createChangePreview.js";
 
-export async function checkMonitor(
-    monitor
-) {
+export async function checkMonitor(monitor) {
     const checkedAt = new Date();
-
-    const isElementMonitor =
-        monitor.monitorType === "element";
-
-    const selector =
-        isElementMonitor
-            ? monitor.contentSelector?.trim()
-            : "body";
+    const isElementMonitor = monitor.monitorType === "element";
+    const selector = isElementMonitor ? monitor.contentSelector?.trim() : "body";
 
     try {
         if (!monitor.url) {
-            throw new Error(
-                "This monitor does not have a URL."
-            );
+            throw new Error("This monitor does not have a URL.");
         }
 
         if (!selector) {
-            throw new Error(
-                "This element monitor does not have a CSS selector."
-            );
+            throw new Error("This element monitor does not have a CSS selector.");
         }
 
-        const response = await fetch(
-            monitor.url,
+        const response = await fetch(monitor.url,
             {
                 redirect: "follow",
 
@@ -70,35 +47,19 @@ export async function checkMonitor(
                         "no-cache"
                 },
 
-                signal:
-                    AbortSignal.timeout(
-                        15000
-                    )
+                signal: AbortSignal.timeout(15000)
             }
         );
 
-        const html =
-            await response.text();
+        const html = await response.text();
 
         if (!response.ok) {
-            throw new Error(
-                `Page returned HTTP ${response.status}`
-            );
+            throw new Error(`Page returned HTTP ${response.status}`);
         }
 
-        const contentType =
-            response.headers.get(
-                "content-type"
-            ) || "";
+        const contentType = response.headers.get("content-type") || "";
 
-        if (
-            !contentType.includes(
-                "text/html"
-            ) &&
-            !contentType.includes(
-                "application/xhtml+xml"
-            )
-        ) {
+        if (!contentType.includes("text/html") && !contentType.includes("application/xhtml+xml")) {
             throw new Error(
                 `The URL did not return an HTML webpage. Received: ${
                     contentType ||
@@ -107,13 +68,7 @@ export async function checkMonitor(
             );
         }
 
-        if (
-            isElementMonitor &&
-            response.redirected &&
-            isLikelyAuthenticationUrl(
-                response.url
-            )
-        ) {
+        if (isElementMonitor && response.redirected && isLikelyAuthenticationUrl(response.url)) {
             throw new Error(
                 "The webpage redirected to a login page. " +
                 "Authenticated pages cannot currently be checked by the server."
