@@ -1,17 +1,6 @@
-import {
-  NOTIFICATION_ALARM,
-  NOTIFICATION_DATA_KEY,
-  PREVIEW_MAX_LENGTH
-} from "./config.js";
-
-import {
-  getPendingNotifications,
-  acknowledgeNotification
-} from "./services/api.js";
-
-import {
-  ensureInstallationCredentials
-} from "./services/installation.js";
+import { NOTIFICATION_ALARM, NOTIFICATION_DATA_KEY, PREVIEW_MAX_LENGTH } from "./config.js";
+import { getPendingNotifications, acknowledgeNotification } from "./services/api.js";
+import { ensureInstallationCredentials } from "./services/installation.js";
 
 function truncateText(value, maxLength = PREVIEW_MAX_LENGTH) {
   const text = String(value || "")
