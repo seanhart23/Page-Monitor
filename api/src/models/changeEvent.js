@@ -93,7 +93,4 @@ changeEventSchema.index({
     checkedAt: -1
 });
 
-export const ChangeEvent = mongoose.model(
-    "ChangeEvent",
-    changeEventSchema
-);
+export const ChangeEvent = mongoose.model("ChangeEvent", changeEventSchema);

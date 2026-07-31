@@ -2,10 +2,7 @@ import crypto from "node:crypto";
 import { Installation } from "../models/installation.js";
 
 function hashSecret(secret) {
-    return crypto
-        .createHash("sha256")
-        .update(secret)
-        .digest("hex");
+    return crypto.createHash("sha256").update(secret).digest("hex");
 }
 
 export async function registerInstallation(request, response) {
@@ -13,9 +10,9 @@ export async function registerInstallation(request, response) {
         const installationId = crypto.randomUUID();
         const installationSecret = crypto.randomBytes(32).toString("hex");
 
-        await Installation.create({
-            installationId,
-            secretHash: hashSecret(installationSecret)
+        await Installation.create({ 
+            installationId, 
+            secretHash: hashSecret(installationSecret) 
         });
 
         return response.status(201).json({

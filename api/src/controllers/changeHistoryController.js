@@ -3,10 +3,7 @@ import mongoose from "mongoose";
 import { Monitor } from "../models/monitor.js";
 import { ChangeEvent } from "../models/changeEvent.js";
 
-export async function getMonitorHistory(
-    request,
-    response
-) {
+export async function getMonitorHistory(request, response) {
     try {
         const { monitorId } = request.params;
 
@@ -17,13 +14,8 @@ export async function getMonitorHistory(
             });
         }
 
-        const installationId =
-            request.installation.installationId;
-
-        const monitor = await Monitor.findOne({
-            _id: monitorId,
-            installationId
-        });
+        const installationId = request.installation.installationId;
+        const monitor = await Monitor.findOne({_id: monitorId, installationId});
 
         if (!monitor) {
             return response.status(404).json({
@@ -32,30 +24,18 @@ export async function getMonitorHistory(
             });
         }
 
-        const history = await ChangeEvent.find({
-            monitorId,
-            installationId
-        })
-            .sort({
-                checkedAt: -1
-            })
-            .limit(50)
-            .lean();
+        const history = await ChangeEvent.find({monitorId, installationId}).sort({ checkedAt: -1 }).limit(50).lean();
 
         return response.json({
             success: true,
             data: history
         });
     } catch (error) {
-        console.error(
-            "Unable to load monitor history:",
-            error
-        );
+        console.error("Unable to load monitor history:", error);
 
         return response.status(500).json({
             success: false,
-            message:
-                "Unable to load change history."
+            message: "Unable to load change history."
         });
     }
 }

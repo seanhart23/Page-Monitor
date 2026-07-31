@@ -36,7 +36,4 @@ const installationSchema = new mongoose.Schema(
     }
 );
 
-export const Installation = mongoose.model(
-    "Installation",
-    installationSchema
-);
+export const Installation = mongoose.model("Installation", installationSchema);

@@ -5,8 +5,5 @@ export function createFingerprint(content) {
         throw new TypeError("Fingerprint content must be a string.");
     }
 
-    return crypto
-        .createHash("sha256")
-        .update(content, "utf8")
-        .digest("hex");
+    return crypto.createHash("sha256").update(content, "utf8").digest("hex");
 }

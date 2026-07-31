@@ -1,10 +1,7 @@
 import "dotenv/config";
 
 export function normalizePageText(value = "") {
-    return String(value)
-        .replace(/\u00a0/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+    return String(value).replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
 }
 
 export function limitStoredContent(content = "") {
@@ -18,11 +15,7 @@ export function limitStoredContent(content = "") {
 }
 
 export function createChangePreview(previousContent, currentContent, options = {}) {
-    const {
-        maxWords = process.env.DEFAULT_PREVIEW_WORDS,
-        contextWords = process.env.DEFAULT_CONTEXT_WORDS
-    } = options;
-
+    const { maxWords = process.env.DEFAULT_PREVIEW_WORDS, contextWords = process.env.DEFAULT_CONTEXT_WORDS } = options;
     const normalizedPrevious = normalizePageText(previousContent);
     const normalizedCurrent = normalizePageText(currentContent);
 
@@ -35,7 +28,6 @@ export function createChangePreview(previousContent, currentContent, options = {
     }
 
     const previousWords = splitIntoWords(normalizedPrevious);
-
     const currentWords = splitIntoWords(normalizedCurrent);
 
     let startIndex = 0;
@@ -43,9 +35,8 @@ export function createChangePreview(previousContent, currentContent, options = {
     while (
         startIndex < previousWords.length &&
         startIndex < currentWords.length &&
-        previousWords[startIndex] ===
-            currentWords[startIndex]
-    ) {
+        previousWords[startIndex] === currentWords[startIndex]) 
+    {
         startIndex += 1;
     }
 
@@ -55,8 +46,7 @@ export function createChangePreview(previousContent, currentContent, options = {
     while (
         previousEndIndex >= startIndex &&
         currentEndIndex >= startIndex &&
-        previousWords[previousEndIndex] ===
-            currentWords[currentEndIndex]
+        previousWords[previousEndIndex] === currentWords[currentEndIndex]
     ) {
         previousEndIndex -= 1;
         currentEndIndex -= 1;
@@ -69,42 +59,15 @@ export function createChangePreview(previousContent, currentContent, options = {
 
     return {
         changed: true,
-
-        changeType: determineChangeType(
-            removedWords,
-            addedWords
-        ),
-
-        summary: createSummary(
-            removedWords.length,
-            addedWords.length
-        ),
-
-        removedText: truncateWords(
-            removedWords,
-            maxWords
-        ),
-
-        addedText: truncateWords(
-            addedWords,
-            maxWords
-        ),
-
-        beforeContext:
-            beforeContextWords.join(" "),
-
-        afterContext:
-            afterContextWords.join(" "),
-
-        removedWordCount:
-            removedWords.length,
-
-        addedWordCount:
-            addedWords.length,
-
-        wasTruncated:
-            removedWords.length > maxWords ||
-            addedWords.length > maxWords
+        changeType: determineChangeType(removedWords, addedWords),
+        summary: createSummary(removedWords.length, addedWords.length),
+        removedText: truncateWords(removedWords, maxWords),
+        addedText: truncateWords(addedWords, maxWords),
+        beforeContext: beforeContextWords.join(" "),
+        afterContext: afterContextWords.join(" "),
+        removedWordCount: removedWords.length,
+        addedWordCount: addedWords.length,
+        wasTruncated: removedWords.length > maxWords || addedWords.length > maxWords
     };
 }
 
@@ -128,10 +91,7 @@ function truncateWords(words, maxWords) {
 }
 
 function determineChangeType(removedWords, addedWords) {
-    if (
-        removedWords.length > 0 &&
-        addedWords.length > 0
-    ) {
+    if (removedWords.length > 0 && addedWords.length > 0) {
         return "modified";
     }
 
@@ -147,29 +107,21 @@ function determineChangeType(removedWords, addedWords) {
 }
 
 function createSummary(removedWordCount, addedWordCount) {
-    if (
-        removedWordCount > 0 &&
-        addedWordCount > 0
-    ) {
+    if (removedWordCount > 0 && addedWordCount > 0) {
         return (
-            `Removed ${removedWordCount} ` +
-            `word${pluralize(removedWordCount)} ` +
-            `and added ${addedWordCount} ` +
-            `word${pluralize(addedWordCount)}`
+            `Removed ${removedWordCount} ` + `word${pluralize(removedWordCount)} ` + `and added ${addedWordCount} ` + `word${pluralize(addedWordCount)}`
         );
     }
 
     if (addedWordCount > 0) {
         return (
-            `Added ${addedWordCount} ` +
-            `word${pluralize(addedWordCount)}`
+            `Added ${addedWordCount} ` + `word${pluralize(addedWordCount)}`
         );
     }
 
     if (removedWordCount > 0) {
         return (
-            `Removed ${removedWordCount} ` +
-            `word${pluralize(removedWordCount)}`
+            `Removed ${removedWordCount} ` + `word${pluralize(removedWordCount)}`
         );
     }
 

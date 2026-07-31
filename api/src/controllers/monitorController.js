@@ -6,12 +6,7 @@ import { normalizeUrl } from "../utils/normalizeUrl.js";
 
 export async function getMonitors(request, response) {
   try {
-    const monitors = await Monitor.find({
-      installationId:
-        request.installation.installationId
-    }).sort({
-      createdAt: -1,
-    });
+    const monitors = await Monitor.find({ installationId: request.installation.installationId }).sort({ createdAt: -1, });
 
     response.json({
       success: true,
@@ -32,14 +27,7 @@ export async function createMonitor(request, response) {
   try {
     const installationId = request.installation.installationId;
 
-    const maxMonitors =
-      Number(
-        process.env.MAX_MONITORS_PER_INSTALLATION
-      ) ||
-      Number(
-        process.env.DEFAULT_MAX_MONITORS
-      ) ||
-      DEFAULT_MAX_MONITORS;
+    const maxMonitors = Number(process.env.MAX_MONITORS_PER_INSTALLATION) || Number(process.env.DEFAULT_MAX_MONITORS) || DEFAULT_MAX_MONITORS;
 
     const {
       title,
@@ -60,22 +48,14 @@ export async function createMonitor(request, response) {
       });
     }
 
-    if (
-      !["page", "element"].includes(
-        monitorType
-      )
-    ) {
+    if (!["page", "element"].includes(monitorType)) {
       return response.status(400).json({
         success: false,
         message: "Invalid monitor type"
       });
     }
 
-    if (
-      !["text", "html"].includes(
-        comparisonMode
-      )
-    ) {
+    if (!["text", "html"].includes(comparisonMode)) {
       return response.status(400).json({
         success: false,
         message: "Invalid comparison mode"
@@ -84,18 +64,11 @@ export async function createMonitor(request, response) {
 
     const effectiveSelector = monitorType === "element" ? contentSelector?.trim() : "body";
 
-    if (
-      monitorType === "element" &&
-      (
-        !effectiveSelector ||
-        effectiveSelector === "body"
-      )
-    ) {
+    if (monitorType === "element" && (!effectiveSelector || effectiveSelector === "body")) {
       return response.status(400).json({
         success: false,
         code: "ELEMENT_SELECTOR_REQUIRED",
-        message:
-          "Element monitors require a selected element."
+        message: "Element monitors require a selected element."
       });
     }
 
@@ -113,117 +86,67 @@ export async function createMonitor(request, response) {
     const duplicateQuery = {
       installationId,
       normalizedUrl,
-      contentSelector:
-        effectiveSelector
+      contentSelector: effectiveSelector
     };
 
-    const existingMonitor =
-      await Monitor.findOne(
-        duplicateQuery
-      );
+    const existingMonitor = await Monitor.findOne(duplicateQuery);
 
     if (existingMonitor) {
       return response.status(409).json({
         success: false,
-        code:
-          "MONITOR_ALREADY_EXISTS",
-        message:
-          monitorType === "element"
-            ? "This element is already being monitored."
-            : "This page is already being monitored."
+        code: "MONITOR_ALREADY_EXISTS",
+        message: monitorType === "element" ? "This element is already being monitored." : "This page is already being monitored."
       });
     }
 
-    const monitorCount =
-      await Monitor.countDocuments({
-        installationId
-      });
+    const monitorCount = await Monitor.countDocuments({ installationId });
 
-    if (
-      monitorCount >= maxMonitors
-    ) {
+    if (monitorCount >= maxMonitors) {
       return response.status(403).json({
         success: false,
-        code:
-          "MONITOR_LIMIT_REACHED",
-        message:
-          `You have reached the limit of ${maxMonitors} monitors.`,
+        code: "MONITOR_LIMIT_REACHED",
+        message: `You have reached the limit of ${maxMonitors} monitors.`,
         limit: maxMonitors,
-        currentCount:
-          monitorCount
+        currentCount: monitorCount
       });
     }
 
-    const monitor =
-      await Monitor.create({
+    const monitor = await Monitor.create({ 
         installationId,
-
-        title:
-          title?.trim() ||
-          "Untitled page",
-
+        title: title?.trim() || "Untitled page",
         url,
         normalizedUrl,
-
-        icon:
-          icon || "",
-
-        checkInterval:
-          Number(checkInterval) ||
-          30,
-
+        icon: icon || "",
+        checkInterval: Number(checkInterval) || 30,
         monitorType,
-
-        contentSelector:
-          effectiveSelector,
-
+        contentSelector: effectiveSelector,
         comparisonMode,
-
-        selectedElement:
-          monitorType === "element"
-            ? selectedElement
-            : null,
-
-        ignoreSelectors:
-          Array.isArray(
-            ignoreSelectors
-          )
-            ? ignoreSelectors
-            : []
+        selectedElement: monitorType === "element" ? selectedElement : null,
+        ignoreSelectors: Array.isArray(ignoreSelectors) ? ignoreSelectors : []
       });
 
     return response.status(201).json({
       success: true,
       data: monitor,
       usage: {
-        currentCount:
-          monitorCount + 1,
-
-        limit:
-          maxMonitors
+        currentCount: monitorCount + 1,
+        limit: maxMonitors
       }
     });
-
   } catch (error) {
-    console.error(
-      "Unable to create monitor:",
-      error
-    );
+    console.error("Unable to create monitor:", error);
 
     if (error.code === 11000) {
       return response.status(409).json({
         success: false,
-        code:
-          "MONITOR_ALREADY_EXISTS",
-        message:
-          "This page or element is already being monitored."
+        code: "MONITOR_ALREADY_EXISTS",
+        message: "This page or element is already being monitored."
       });
     }
 
     return response.status(500).json({
       success: false,
-      message:
-        "Unable to create monitor"
+      message: "Unable to create monitor"
     });
   }
 }
@@ -272,8 +195,7 @@ export async function checkMonitorNow(request, response) {
   try {
     const monitor = await Monitor.findOne({
       _id: request.params.id,
-      installationId:
-        request.installation.installationId
+      installationId: request.installation.installationId
     }).select("+lastContent");
 
     if (!monitor) {

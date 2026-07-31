@@ -50,27 +50,14 @@ export function extractMeaningfulContent(html, { contentSelector = "body", ignor
         throw new Error(`Content selector did not match anything: ${contentSelector}`);
     }
 
-    const extractedText = contentElement
-        .find("*")
-        .addBack()
-        .contents()
-        .map((_, node) => {
-            if (node.type === "text") {
-                return $(node).text();
-            }
-
-            return "";
-        })
-        .get()
-        .join(" ");
+    const extractedText = contentElement.find("*").addBack().contents().map((_, node) => { if (node.type === "text") { return $(node).text(); }
+        return "";
+    }).get().join(" ");
 
     return normalizeText(extractedText);
 
 }
 
 export function normalizeText(text) {
-    return text
-        .replace(/\u00a0/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+    return text.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
 }

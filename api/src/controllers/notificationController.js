@@ -7,45 +7,16 @@ export async function getPendingNotifications(request, response) {
         const monitors = await Monitor.find({
             installationId,
             notificationPending: true
-        })
-            .select(
-                "_id title url icon lastChangedAt changeCount"
-            )
-            .sort({
-                lastChangedAt: -1
-            })
-            .lean();
+        }).select("_id title url icon lastChangedAt changeCount").sort({ lastChangedAt: -1}).lean();
 
         const notifications = await Promise.all(
             monitors.map(async monitor => {
-                const change =
-                    await ChangeEvent.findOne({
-                        monitorId: monitor._id,
-                        installationId
-                    })
-                        .sort({
-                            checkedAt: -1
-                        })
-                        .select(
-                            [
-                                "summary",
-                                "changeType",
-                                "removedText",
-                                "addedText",
-                                "beforeContext",
-                                "afterContext",
-                                "removedWordCount",
-                                "addedWordCount",
-                                "wasTruncated",
-                                "checkedAt"
-                            ].join(" ")
-                        )
-                        .lean();
+                const change = await ChangeEvent.findOne({
+                    monitorId: monitor._id,
+                    installationId
+                }).sort({ checkedAt: -1 }).select(["summary", "changeType", "removedText", "addedText", "beforeContext", "afterContext", "removedWordCount", "addedWordCount", "wasTruncated", "checkedAt"].join(" ")).lean();
 
-                return {
-                    monitor,
-                    change
-                };
+                return {monitor, change};
             })
         );
 
@@ -54,10 +25,7 @@ export async function getPendingNotifications(request, response) {
             data: notifications
         });
     } catch (error) {
-        console.error(
-            "Unable to get notifications:",
-            error
-        );
+        console.error("Unable to get notifications:", error);
 
         return response.status(500).json({
             success: false,
@@ -66,30 +34,18 @@ export async function getPendingNotifications(request, response) {
     }
 }
 
-export async function acknowledgeNotification(
-    request,
+export async function acknowledgeNotification( request,
     response
 ) {
     try {
-        const monitor =
-            await Monitor.findOneAndUpdate(
-                {
-                    _id: request.params.monitorId,
-                    installationId:
-                        request.installation
-                            .installationId,
-                    notificationPending: true
-                },
-                {
-                    $set: {
-                        notificationPending: false,
-                        lastNotifiedAt: new Date()
-                    }
-                },
-                {
-                    returnDocument: "after"
-                }
-            );
+        const monitor = await Monitor.findOneAndUpdate({
+            _id: request.params.monitorId,
+            installationId: request.installation
+            .installationId,
+            notificationPending: true
+        },
+        { $set: { notificationPending: false, lastNotifiedAt: new Date() } },
+        { returnDocument: "after" });
 
         if (!monitor) {
             return response.status(404).json({
@@ -103,10 +59,7 @@ export async function acknowledgeNotification(
             data: monitor
         });
     } catch (error) {
-        console.error(
-            "Unable to acknowledge notification:",
-            error
-        );
+        console.error("Unable to acknowledge notification:", error);
 
         return response.status(500).json({
             success: false,
